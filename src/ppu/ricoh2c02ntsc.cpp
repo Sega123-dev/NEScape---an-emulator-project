@@ -1,7 +1,7 @@
 #include <cstdint>
 #include <iostream>
 #include <vector>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "ricoh2c02ntsc.hpp"
 #include "../mappers/iNES_reader/reader.hpp"
 #include "../mappers/mapper.hpp"
@@ -10,8 +10,6 @@
 
 // FILES NOT COMPILED,SDL WILL NOT WORK UNTIL YOU COMPILE!!!
 Mapper *mapper;
-Bus *bus = nullptr;
-CPU *cpu;
 
 PPU::PPU(std::vector<uint8_t> &chrROMBuffer)
 {
@@ -550,7 +548,7 @@ void PPU::clock()
     {
         vblankFlag = true;
         if (vblankFlag && nmiOutput)
-            cpu->NMI = true;
+            cpu.NMI = true;
     }
 
     // SPRITE EVALUATION
@@ -791,7 +789,7 @@ void PPU::drawFrame()
 }
 void PPU::connectBus(Bus *b)
 {
-    bus = b;
+    bus = *b;
 }
 ////////////////////////////////////////////
 // CLOCK FUNCTION AROUND 75% ACCURACY GOAL//

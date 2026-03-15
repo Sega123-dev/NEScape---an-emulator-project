@@ -1,5 +1,5 @@
 #include "bus.hpp"
-
+Bus bus;
 void Bus::write(uint16_t addr, uint8_t data)
 {
     if (addr >= 0x0000 && addr <= 0x1FFF)

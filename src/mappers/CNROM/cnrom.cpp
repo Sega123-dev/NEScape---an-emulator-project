@@ -4,8 +4,6 @@
 #include "cnrom.hpp"
 #include "../../bus/bus.hpp"
 
-Bus *bus = nullptr;
-
 void CNROM::reset()
 {
     currentChrBank = 0;
@@ -67,5 +65,5 @@ Mirror CNROM::getMirror() {}
 
 void CNROM::connectBus(Bus *b)
 {
-    bus = b;
+    bus = *b;
 }

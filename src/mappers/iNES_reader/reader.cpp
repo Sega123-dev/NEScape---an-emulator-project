@@ -12,8 +12,6 @@
 #include <fstream>
 #include <vector>
 
-Bus *bus = nullptr;
-
 uint8_t header[16];
 int prgRomSize;
 int chrRomSize;
@@ -117,5 +115,5 @@ Mapper *chooseMapper()
 };
 void connectReader(Bus *b)
 {
-    bus = b;
+    bus = *b;
 }

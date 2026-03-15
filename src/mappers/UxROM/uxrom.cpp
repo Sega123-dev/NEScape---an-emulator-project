@@ -3,8 +3,6 @@
 #include <vector>
 #include "uxrom.hpp"
 
-Bus *bus = nullptr;
-
 void UXROM::reset()
 {
     currentPRGbank = 0;
@@ -65,5 +63,5 @@ Mirror UXROM::getMirror() {}
 
 void UXROM::connectUxrom(Bus *b)
 {
-    bus = b;
+    bus = *b;
 }

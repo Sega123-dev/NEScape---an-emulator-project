@@ -6,7 +6,6 @@
 #include "../../ppu/ricoh2c02ntsc.hpp"
 
 PPU *ppu;
-CPU *cpu;
 void MMC3::reset()
 {
     bankSelect = 0;
@@ -101,7 +100,7 @@ void MMC3::clockIRQ(int currentA12)
         else
             irqCounter--;
         if (irqEnabled && irqCounter == 0)
-            cpu->setIRQ();
+            cpu.setIRQ();
     }
 
     prevA12 = currentA12;
@@ -188,7 +187,7 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
     else if (addr == 0xE000)
     {
         irqEnabled = false;
-        cpu->clearIRQ();
+        cpu.clearIRQ();
     }
     else if (addr == 0xE001)
     {

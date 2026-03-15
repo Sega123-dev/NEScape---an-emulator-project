@@ -4,7 +4,7 @@
 #include <vector>
 #include "../mappers/mapper.hpp"
 #include "../bus/bus.hpp"
-#include <SDL.h>
+#include <SDL2/SDL.h>
 class Bus;
 class PPU
 {

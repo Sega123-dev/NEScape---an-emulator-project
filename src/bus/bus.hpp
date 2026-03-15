@@ -37,3 +37,5 @@ public:
 
     uint8_t ram[2048];
 };
+
+extern Bus bus;

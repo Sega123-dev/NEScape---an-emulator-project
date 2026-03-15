@@ -239,3 +239,5 @@ public:
     void pushPC();
     void pushStatus(bool breakFlag = false);
 };
+
+extern CPU cpu;

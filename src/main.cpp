@@ -3,9 +3,9 @@
 #include "mappers/MMC3/mmc3.hpp"
 #include "mappers/iNES_reader/reader.hpp"
 #include <iostream>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
-int main()
+int main(int argc, char *argv[])
 {
     Bus nes;
     MMC3 mmc3;

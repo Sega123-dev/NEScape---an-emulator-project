@@ -4,8 +4,6 @@
 #include <vector>
 #include "../../bus/bus.hpp"
 
-Bus *bus = nullptr;
-
 void MMC1::reset()
 {
     shiftReg = 0x10;
@@ -161,5 +159,5 @@ Mirror MMC1::getMirror()
 }
 void MMC1::connectMMC1(Bus *b)
 {
-    bus = b;
+    bus = *b;
 }

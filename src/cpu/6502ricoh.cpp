@@ -1,7 +1,7 @@
 #include "6502ricoh.hpp"
 #include "../bus/bus.hpp"
 #include <cstdlib>
-
+CPU cpu;
 Instruction table[256];
 
 CPU::CPU() : bus(nullptr)
