@@ -26,7 +26,7 @@ public:
     void write(uint16_t addr, uint8_t data);
     uint8_t read(uint16_t addr);
 
-    CPU cpu;
+    CPU *cpu;
     MMC3 *mmc3;
     PPU *ppu;
     Mapper *mapper;

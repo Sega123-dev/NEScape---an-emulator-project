@@ -101,7 +101,7 @@ void MMC3::clockIRQ(int currentA12)
         else
             irqCounter--;
         if (irqEnabled && irqCounter == 0)
-            bus->cpu.setIRQ();
+            cpu->setIRQ();
     }
 
     prevA12 = currentA12;
@@ -188,7 +188,7 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
     else if (addr == 0xE000)
     {
         irqEnabled = false;
-        bus->cpu.clearIRQ();
+        cpu->clearIRQ();
     }
     else if (addr == 0xE001)
     {

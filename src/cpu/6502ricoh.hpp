@@ -21,6 +21,7 @@ enum AddressingMode
 
 class CPU;
 class Bus;
+
 class PPU;
 struct Instruction
 {
@@ -42,7 +43,7 @@ public:
     uint8_t dataBus, A, X, Y, P, sp, cycles, opState;
     uint16_t pc;
     bool NMI, IRQ, RESET;
-    const uint32_t CPU_CLOCK_SPEED = PPU::PPU_CLOCK_SPEED / 3;
+    const uint32_t CPU_CLOCK_SPEED = 5369318 / 3;
 
     void reset();
     void clock();

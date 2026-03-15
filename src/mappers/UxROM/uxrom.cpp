@@ -58,8 +58,10 @@ uint8_t UXROM::cpuRead(uint16_t addr)
 }
 void UXROM::ppuWrite(uint16_t addr, uint8_t data)
 {
-    // No catching right now
+    std::cout << "No ram writes for UXROM" << std::endl;
 }
+
+Mirror UXROM::getMirror() {}
 
 void UXROM::connectUxrom(Bus *b)
 {

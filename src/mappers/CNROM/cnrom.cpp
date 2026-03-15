@@ -61,8 +61,10 @@ uint8_t CNROM::ppuRead(uint16_t addr)
 }
 void CNROM::ppuWrite(uint16_t addr, uint8_t data)
 {
-    // No RAM
+    std::cout << "No ram writes for CNROM" << std::endl;
 }
+Mirror CNROM::getMirror() {}
+
 void CNROM::connectBus(Bus *b)
 {
     bus = b;
