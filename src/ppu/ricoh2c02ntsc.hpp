@@ -5,6 +5,7 @@
 #include "../mappers/mapper.hpp"
 #include "../bus/bus.hpp"
 #include <SDL.h>
+class Bus;
 class PPU
 {
 public:

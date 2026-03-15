@@ -8,6 +8,7 @@
 
 PPU *ppuBus;
 Bus *bus = nullptr;
+
 NROM::NROM(const std::vector<uint8_t> &prgData, const std::vector<uint8_t> &chrData, const bool &mirrorPortVertical)
 {
     prg = prgData;

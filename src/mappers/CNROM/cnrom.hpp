@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "../mapper.hpp"
+class Bus;
 class CNROM : public Mapper
 {
 public:

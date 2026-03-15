@@ -21,7 +21,7 @@ enum AddressingMode
 
 class CPU;
 class Bus;
-
+class PPU;
 struct Instruction
 {
     std::string name;

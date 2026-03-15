@@ -197,7 +197,7 @@ void CPU::pushPC()
     bus->write(0x0100 + sp, pc & 0xFF); // low byte
     sp--;
 }
-void CPU::pushStatus(bool breakFlag = false)
+void CPU::pushStatus(bool breakFlag)
 {
     uint8_t flags = P;
     flags &= ~0x10;

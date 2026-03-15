@@ -12,13 +12,6 @@
 Mapper *mapper;
 Bus *bus = nullptr;
 CPU *cpu;
-enum Mirror
-{
-    HORIZONTAL,
-    VERTICAL,
-    ONE_SCREEN_LOW,
-    ONE_SCREEN_HIGH
-};
 
 PPU::PPU(std::vector<uint8_t> &chrROMBuffer)
 {

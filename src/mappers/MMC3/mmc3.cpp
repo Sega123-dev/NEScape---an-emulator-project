@@ -6,7 +6,7 @@
 #include "../../ppu/ricoh2c02ntsc.hpp"
 
 PPU *ppu;
-
+CPU *cpu;
 void MMC3::reset()
 {
     bankSelect = 0;

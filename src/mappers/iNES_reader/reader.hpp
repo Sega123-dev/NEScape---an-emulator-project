@@ -5,7 +5,7 @@
 #include <vector>
 
 class Mapper;
-
+class Bus;
 void dumpROM(const char *filename);
 Mapper *chooseMapper();
 

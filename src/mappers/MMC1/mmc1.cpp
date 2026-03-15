@@ -15,7 +15,7 @@ void MMC1::reset()
     chrBank0 = 0, chrBank1 = 0;
     prgBank = 0;
 
-    mirroring = Mirroring::HORIZONTAL;
+    mirroring = Mirror::HORIZONTAL;
 }
 MMC1::MMC1(const std::vector<uint8_t> &prgData, const std::vector<uint8_t> &chrData, const bool &lowHighMirrorPort, const bool &mirrorPortVertical)
 {
@@ -66,10 +66,10 @@ void MMC1::cpuWrite(uint16_t addr, uint8_t value)
         switch (controlReg & 0x03)
         {
         case 0:
-            mirroring = ONE_SCREEN_LOW;
+            mirroring = ONESCREENLOW;
             break;
         case 1:
-            mirroring = ONE_SCREEN_HIGH;
+            mirroring = ONESCREENHIGH;
             break;
         case 2:
             mirroring = VERTICAL;

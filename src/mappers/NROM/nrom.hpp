@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include "../mapper.hpp"
-
+class Bus;
 class NROM : public Mapper
 {
     enum Mirroring

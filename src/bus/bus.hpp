@@ -11,6 +11,14 @@
 
 #include <cstdint>
 
+class CPU;
+class MMC3;
+class PPU;
+class Mapper;
+class MMC1;
+class NROM;
+class UXROM;
+
 class Bus
 {
 public:
@@ -19,13 +27,13 @@ public:
     uint8_t read(uint16_t addr);
 
     CPU cpu;
-    MMC3 *mmc3 = nullptr;
-    PPU *ppu = nullptr;
-    Mapper *mapper = nullptr;
-    CNROM *cnrom = nullptr;
-    MMC1 *mmc1 = nullptr;
-    NROM *nrom = nullptr;
-    UXROM *uxrom = nullptr;
+    MMC3 *mmc3;
+    PPU *ppu;
+    Mapper *mapper;
+    CNROM *cnrom;
+    MMC1 *mmc1;
+    NROM *nrom;
+    UXROM *uxrom;
 
     uint8_t ram[2048];
 };
