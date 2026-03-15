@@ -49,12 +49,7 @@ PPU::PPU(std::vector<uint8_t> &chrROMBuffer)
 
 // HELPERS
 
-struct Color
-{
-    uint8_t r, g, b;
-};
-
-Color nesPalette[64] =
+PPU::Color nesPalette[64] =
     {
         {84, 84, 84}, {0, 30, 116}, {8, 16, 144}, {48, 0, 136}, {68, 0, 100}, {92, 0, 48}, {84, 4, 0}, {60, 24, 0}, {32, 42, 0}, {8, 58, 0}, {0, 64, 0}, {0, 60, 0}, {0, 50, 60}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0},
 
@@ -666,8 +661,6 @@ void PPU::clock()
         }
 
         // PIXEL EXTRACTING
-
-        framebuffer[scanline][cycle - 1] = colorIndex;
 
         uint8_t paletteLookup = paletteRAM[colorIndex & 0x1F];
 

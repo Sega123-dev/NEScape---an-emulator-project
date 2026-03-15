@@ -3,7 +3,8 @@
 #include <iostream>
 #include <vector>
 #include "../mappers/mapper.hpp"
-#include "../../bus/bus.hpp"
+#include "../bus/bus.hpp"
+#include <SDL.h>
 class PPU
 {
 public:
@@ -91,7 +92,6 @@ public:
     uint16_t bgPatternTable;
     uint16_t spritePatternTable;
     int spriteHeight;
-
     bool nmiOutput;
 
     // Write $2001
@@ -108,7 +108,10 @@ public:
 
     // Read $2007
     uint16_t ppuDataBuffer;
-
+    struct Color
+    {
+        uint8_t r, g, b;
+    };
     Color framebuffer[240][256]; // Screen buffer
 
     uint16_t bgShiftLow = 0;
