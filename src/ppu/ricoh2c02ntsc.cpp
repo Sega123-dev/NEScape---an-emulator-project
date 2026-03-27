@@ -722,13 +722,25 @@ void PPU::clock()
             sprite0Hit = true; // Sprite 0 hit
         }
     }
+    // CYCLE INCREMENT
 
-    // SCREEN
+    cycle++;
+    if (cycle > 340)
+    {
+        cycle = 0;
+        scanline++;
+        if (scanline > 261)
+            scanline = -1;
+    };
+}
+// SCREEN
 
-    SDL_Window *window = nullptr;
-    SDL_Renderer *renderer = nullptr;
-    SDL_Texture *texture = nullptr;
+SDL_Window *window = nullptr;
+SDL_Renderer *renderer = nullptr;
+SDL_Texture *texture = nullptr;
 
+void PPU::initWindow()
+{
     SDL_Init(SDL_INIT_VIDEO);
 
     window = SDL_CreateWindow(
@@ -747,16 +759,6 @@ void PPU::clock()
         SDL_TEXTUREACCESS_STREAMING,
         256,
         240);
-    // CYCLE INCREMENT
-
-    cycle++;
-    if (cycle > 340)
-    {
-        cycle = 0;
-        scanline++;
-        if (scanline > 261)
-            scanline = -1;
-    };
 }
 void PPU::drawFrame()
 {

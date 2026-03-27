@@ -32,6 +32,7 @@ void Bus::write(uint16_t addr, uint8_t data)
 }
 uint8_t Bus::read(uint16_t addr)
 {
+    std::cout << "READS CALLED\n";
     if (addr >= 0x0000 && addr <= 0x1FFF)
         return ram[addr & 0x07FF];
     else if (addr >= 0x2000 && addr <= 0x3FFF)
@@ -49,6 +50,12 @@ uint8_t Bus::read(uint16_t addr)
     }
     else if (addr >= 0x6000)
     {
+        if (!mapper)
+        {
+            std::cout << "MAPPER NULL\n";
+            return 0xFF;
+        }
+
         return mapper->cpuRead(addr);
     }
     return 0x00;

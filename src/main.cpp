@@ -7,24 +7,36 @@
 
 int main(int argc, char *argv[])
 {
+    std::cout << "START\n";
+
     Bus nes;
     MMC3 mmc3;
+
+    std::cout << "ROM DUMP\n";
+
     dumpROM("roms/castlevania.nes");
 
+    std::cout << "CONNECT\n";
+
     nes.mmc3 = &mmc3;
+    nes.mapper = &mmc3;
     mmc3.connectBus(&nes);
     nes.cpu->connectBus(&nes);
     nes.ppu->connectBus(&nes);
     nes.cpu->reset();
 
+    std::cout << "FRAME\n";
+
+    nes.ppu->initWindow(); // Create SDL window
+
     while (true)
     {
         for (int i = 0; i < 29780; i++)
         {
+            nes.ppu->clock();
+            nes.ppu->clock();
+            nes.ppu->clock();
             nes.cpu->clock();
-            nes.ppu->clock();
-            nes.ppu->clock();
-            nes.ppu->clock();
         }
 
         nes.ppu->drawFrame();

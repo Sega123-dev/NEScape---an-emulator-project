@@ -1,5 +1,4 @@
 #include "6502ricoh.hpp"
-#include "../bus/bus.hpp"
 #include <cstdlib>
 CPU cpu;
 Instruction table[256];
@@ -264,11 +263,13 @@ void CPU::reset()
     A = X = Y = 0;
     P = 0x24;
     sp = 0xFD;
-    cycles = 7;
+    cycles = 8;
 
     uint8_t low = bus->read(0xFFFC);
     uint8_t high = bus->read(0xFFFD);
     pc = (high << 8) | low;
+    pc = 0x8000;
+    std::cout << "Reset Vector: " << pc << "\n";
 }
 void CPU::brk()
 {

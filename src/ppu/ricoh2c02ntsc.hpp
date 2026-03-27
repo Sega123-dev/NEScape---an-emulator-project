@@ -145,6 +145,7 @@ public:
 
     void connectBus(Bus *b);
     void drawFrame();
+    void initWindow();
 
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;

@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <iostream>
 #include "../ppu/ricoh2c02ntsc.hpp"
+#include "../bus/bus.hpp"
 enum AddressingMode
 {
     IMPLIED,
