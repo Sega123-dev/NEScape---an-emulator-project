@@ -10,6 +10,7 @@ class PPU
 {
 public:
     PPU(std::vector<uint8_t> &chrROMBuffer);
+    PPU() = default;
     uint8_t vram[2048];
     uint8_t paletteRAM[32];
     uint8_t oam[256];

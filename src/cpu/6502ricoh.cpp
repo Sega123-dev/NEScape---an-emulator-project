@@ -269,7 +269,6 @@ void CPU::reset()
     uint8_t low = bus.read(0xFFFC);
     uint8_t high = bus.read(0xFFFD);
     pc = (high << 8) | low;
-    pc = 0x8000;
     std::cout << "Reset Vector: " << pc << "\n";
 }
 void CPU::brk()

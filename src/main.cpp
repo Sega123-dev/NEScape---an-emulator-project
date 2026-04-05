@@ -11,7 +11,8 @@ int main(int argc, char *argv[])
 
     Bus nes;
     MMC3 mmc3;
-
+    CPU cpu;
+    PPU ppu;
     std::cout << "ROM DUMP\n";
 
     dumpROM("roms/castlevania.nes");
@@ -20,6 +21,9 @@ int main(int argc, char *argv[])
 
     nes.mmc3 = &mmc3;
     nes.mapper = &mmc3;
+    nes.cpu = &cpu;
+    nes.ppu = &ppu;
+
     mmc3.connectBus(&nes);
     nes.cpu->connectBus(&nes);
     nes.ppu->connectBus(&nes);
