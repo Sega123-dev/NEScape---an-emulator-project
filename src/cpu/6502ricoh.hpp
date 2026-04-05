@@ -38,7 +38,6 @@ class CPU
 {
 
 public:
-    Bus *bus = nullptr;
     Instruction table[256];
     CPU();
     uint8_t dataBus, A, X, Y, P, sp, cycles, opState;

@@ -1,9 +1,10 @@
 #include "6502ricoh.hpp"
 #include <cstdlib>
 CPU cpu;
+
 Instruction table[256];
 
-CPU::CPU() : bus(nullptr)
+CPU::CPU()
 {
     table[0x00] = {"BRK", &CPU::brk, AddressingMode::IMPLIED, 7};
     table[0xEA] = {"NOP", &CPU::nop, AddressingMode::IMPLIED, 2};
@@ -191,9 +192,9 @@ CPU::CPU() : bus(nullptr)
 
 void CPU::pushPC()
 {
-    bus->write(0x0100 + sp, (pc >> 8) & 0xFF); // high byte
+    bus.write(0x0100 + sp, (pc >> 8) & 0xFF); // high byte
     sp--;
-    bus->write(0x0100 + sp, pc & 0xFF); // low byte
+    bus.write(0x0100 + sp, pc & 0xFF); // low byte
     sp--;
 }
 void CPU::pushStatus(bool breakFlag)
@@ -203,7 +204,7 @@ void CPU::pushStatus(bool breakFlag)
     if (breakFlag)
         flags |= 0x10;
     flags |= 0x20;
-    bus->write(0x0100 + sp, flags);
+    bus.write(0x0100 + sp, flags);
     sp--;
 }
 void CPU::setNZ(uint8_t reg)
@@ -265,8 +266,8 @@ void CPU::reset()
     sp = 0xFD;
     cycles = 8;
 
-    uint8_t low = bus->read(0xFFFC);
-    uint8_t high = bus->read(0xFFFD);
+    uint8_t low = bus.read(0xFFFC);
+    uint8_t high = bus.read(0xFFFD);
     pc = (high << 8) | low;
     pc = 0x8000;
     std::cout << "Reset Vector: " << pc << "\n";
@@ -275,20 +276,20 @@ void CPU::brk()
 {
     pc++;
 
-    bus->write(0x0100 + sp, (pc >> 8) & 0xFF);
+    bus.write(0x0100 + sp, (pc >> 8) & 0xFF);
     sp--;
 
-    bus->write(0x0100 + sp, pc & 0xFF);
+    bus.write(0x0100 + sp, pc & 0xFF);
     sp--;
 
     P |= 0x30;
-    bus->write(0x0100 + sp, P);
+    bus.write(0x0100 + sp, P);
     sp--;
 
     P |= 0x04;
 
-    uint8_t lowByte = bus->read(0xFFFE);
-    uint8_t highByte = bus->read(0xFFFF);
+    uint8_t lowByte = bus.read(0xFFFE);
+    uint8_t highByte = bus.read(0xFFFF);
     pc = (highByte << 8) | lowByte;
 }
 void CPU::nop()
@@ -298,26 +299,26 @@ void CPU::nop()
 void CPU::rti()
 {
     sp++;
-    P = bus->read(0x0100 + sp);
+    P = bus.read(0x0100 + sp);
 
     P &= ~0x10;
     P |= 0x20;
 
     sp++;
-    uint8_t lowByte = bus->read(0x0100 + sp);
+    uint8_t lowByte = bus.read(0x0100 + sp);
     sp++;
-    uint8_t highByte = bus->read(0x0100 + sp);
+    uint8_t highByte = bus.read(0x0100 + sp);
 
     uint16_t subAddress = (highByte << 8) | lowByte;
     pc = subAddress;
 }
 void CPU::bitAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t addr = (highByte << 8) | lowByte;
-    uint8_t value = bus->read(addr);
+    uint8_t value = bus.read(addr);
 
     uint8_t result = A & value;
 
@@ -338,8 +339,8 @@ void CPU::bitAbsolute()
 }
 void CPU::bitZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read(addr);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read(addr);
 
     uint8_t result = A & value;
 
@@ -360,45 +361,45 @@ void CPU::bitZeroPage()
 }
 void CPU::incAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
 
-    uint16_t value = bus->read(finalAddress) + 1;
+    uint16_t value = bus.read(finalAddress) + 1;
     uint8_t bit8val = value & 0xFF;
 
-    bus->write(finalAddress, bit8val);
+    bus.write(finalAddress, bit8val);
 
     setNZ(bit8val);
 }
 void CPU::incAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
 
-    uint16_t value = bus->read(finalAddress + X) + 1;
+    uint16_t value = bus.read(finalAddress + X) + 1;
     uint8_t bit8val = value & 0xFF;
 
-    bus->write(finalAddress + X, bit8val);
+    bus.write(finalAddress + X, bit8val);
 
     setNZ(bit8val);
 }
 void CPU::incZeroPage()
 {
-    uint8_t address = bus->read(pc++);
-    uint8_t bit8val = bus->read(address);
+    uint8_t address = bus.read(pc++);
+    uint8_t bit8val = bus.read(address);
 
-    bus->write(address, bit8val + 1);
+    bus.write(address, bit8val + 1);
 
     setNZ(bit8val + 1);
 }
 void CPU::incZeroPageX()
 {
-    uint8_t address = bus->read(pc++);
-    uint8_t bit8val = bus->read((address + X) & 0xFF);
+    uint8_t address = bus.read(pc++);
+    uint8_t bit8val = bus.read((address + X) & 0xFF);
 
-    bus->write((address + X) & 0xFF, bit8val + 1);
+    bus.write((address + X) & 0xFF, bit8val + 1);
 
     setNZ(bit8val + 1);
 }
@@ -416,45 +417,45 @@ void CPU::iny()
 }
 void CPU::decAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
 
-    uint16_t value = bus->read(finalAddress) - 1;
+    uint16_t value = bus.read(finalAddress) - 1;
     uint8_t bit8val = value & 0xFF;
 
-    bus->write(finalAddress, bit8val);
+    bus.write(finalAddress, bit8val);
 
     setNZ(bit8val);
 }
 void CPU::decAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
 
-    uint16_t value = bus->read(finalAddress + X) - 1;
+    uint16_t value = bus.read(finalAddress + X) - 1;
     uint8_t bit8val = value & 0xFF;
 
-    bus->write(finalAddress + X, bit8val);
+    bus.write(finalAddress + X, bit8val);
 
     setNZ(bit8val);
 }
 void CPU::decZeroPage()
 {
-    uint8_t address = bus->read(pc++);
-    uint8_t bit8val = bus->read(address);
+    uint8_t address = bus.read(pc++);
+    uint8_t bit8val = bus.read(address);
 
-    bus->write(address, bit8val - 1);
+    bus.write(address, bit8val - 1);
 
     setNZ(bit8val - 1);
 }
 void CPU::decZeroPageX()
 {
-    uint8_t address = bus->read(pc++);
-    uint8_t bit8val = bus->read((address + X) & 0xFF);
+    uint8_t address = bus.read(pc++);
+    uint8_t bit8val = bus.read((address + X) & 0xFF);
 
-    bus->write((address + X) & 0xFF, bit8val - 1);
+    bus.write((address + X) & 0xFF, bit8val - 1);
 
     setNZ(bit8val - 1);
 }
@@ -493,15 +494,15 @@ void CPU::clv()
 }
 void CPU::ldaImmediate()
 {
-    uint8_t value = bus->read(pc++);
+    uint8_t value = bus.read(pc++);
     A = value;
 
     setNZ(A);
 }
 void CPU::ldaZeroPage()
 {
-    uint8_t address = bus->read(pc++);
-    uint8_t value = bus->read(address);
+    uint8_t address = bus.read(pc++);
+    uint8_t value = bus.read(address);
 
     A = value;
 
@@ -509,9 +510,9 @@ void CPU::ldaZeroPage()
 }
 void CPU::ldaZeroPageX()
 {
-    uint8_t address = bus->read(pc++);
+    uint8_t address = bus.read(pc++);
     uint8_t zeroPageAddress = (address + X) & 0xFF;
-    uint8_t value = bus->read(zeroPageAddress);
+    uint8_t value = bus.read(zeroPageAddress);
 
     A = value;
 
@@ -519,21 +520,21 @@ void CPU::ldaZeroPageX()
 }
 void CPU::ldaAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
-    uint8_t value = bus->read(finalAddress);
+    uint8_t value = bus.read(finalAddress);
 
     A = value;
     setNZ(A);
 }
 void CPU::ldaAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     uint16_t finalAddressX = finalAddress + X;
-    uint8_t value = bus->read(finalAddressX);
+    uint8_t value = bus.read(finalAddressX);
 
     A = value;
 
@@ -545,11 +546,11 @@ void CPU::ldaAbsoluteX()
 }
 void CPU::ldaAbsoluteY()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     uint16_t finalAddressY = finalAddress + Y;
-    uint8_t value = bus->read(finalAddressY);
+    uint8_t value = bus.read(finalAddressY);
 
     A = value;
 
@@ -560,37 +561,37 @@ void CPU::ldaAbsoluteY()
 }
 void CPU::ldaIndexedIndirect()
 {
-    uint8_t address = bus->read(pc++);
+    uint8_t address = bus.read(pc++);
     uint8_t zeroPageAddress = (address + X) & 0xFF;
-    uint8_t lowByte = bus->read(zeroPageAddress);
-    uint8_t highByte = bus->read((zeroPageAddress + 1) & 0xFF);
+    uint8_t lowByte = bus.read(zeroPageAddress);
+    uint8_t highByte = bus.read((zeroPageAddress + 1) & 0xFF);
     uint16_t ptr = (highByte << 8) | lowByte;
-    A = bus->read(ptr);
+    A = bus.read(ptr);
 
     setNZ(A);
 }
 void CPU::ldaIndirectIndexed()
 {
-    uint8_t address = bus->read(pc++);
-    uint8_t lowByte = bus->read(address);
-    uint8_t highByte = bus->read((address + 1) & 0xFF);
+    uint8_t address = bus.read(pc++);
+    uint8_t lowByte = bus.read(address);
+    uint8_t highByte = bus.read((address + 1) & 0xFF);
     uint16_t ptr = (highByte << 8) | lowByte;
     uint16_t finalAddress = ptr + Y;
-    A = bus->read(finalAddress);
+    A = bus.read(finalAddress);
 
     setNZ(A);
 }
 void CPU::ldxImmediate()
 {
-    uint8_t value = bus->read(pc++);
+    uint8_t value = bus.read(pc++);
     X = value;
 
     setNZ(X);
 }
 void CPU::ldxZeroPage()
 {
-    uint8_t address = bus->read(pc++);
-    uint8_t value = bus->read(address);
+    uint8_t address = bus.read(pc++);
+    uint8_t value = bus.read(address);
 
     X = value;
 
@@ -598,9 +599,9 @@ void CPU::ldxZeroPage()
 }
 void CPU::ldxZeroPageY()
 {
-    uint8_t address = bus->read(pc++);
+    uint8_t address = bus.read(pc++);
     uint8_t zeroPageAddress = (address + Y) & 0xFF;
-    uint8_t value = bus->read(zeroPageAddress);
+    uint8_t value = bus.read(zeroPageAddress);
 
     X = value;
 
@@ -608,10 +609,10 @@ void CPU::ldxZeroPageY()
 }
 void CPU::ldxAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
-    uint8_t value = bus->read(finalAddress);
+    uint8_t value = bus.read(finalAddress);
 
     X = value;
 
@@ -619,11 +620,11 @@ void CPU::ldxAbsolute()
 }
 void CPU::ldxAbsoluteY()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     uint16_t finalAddressY = finalAddress + Y;
-    uint8_t value = bus->read(finalAddressY);
+    uint8_t value = bus.read(finalAddressY);
 
     X = value;
 
@@ -634,15 +635,15 @@ void CPU::ldxAbsoluteY()
 }
 void CPU::ldyImmediate()
 {
-    uint8_t value = bus->read(pc++);
+    uint8_t value = bus.read(pc++);
     Y = value;
 
     setNZ(Y);
 }
 void CPU::ldyZeroPage()
 {
-    uint8_t address = bus->read(pc++);
-    uint8_t value = bus->read(address);
+    uint8_t address = bus.read(pc++);
+    uint8_t value = bus.read(address);
 
     Y = value;
 
@@ -650,9 +651,9 @@ void CPU::ldyZeroPage()
 }
 void CPU::ldyZeroPageX()
 {
-    uint8_t address = bus->read(pc++);
+    uint8_t address = bus.read(pc++);
     uint8_t zeroPageAddress = (address + X) & 0xFF;
-    uint8_t value = bus->read(zeroPageAddress);
+    uint8_t value = bus.read(zeroPageAddress);
 
     Y = value;
 
@@ -660,10 +661,10 @@ void CPU::ldyZeroPageX()
 }
 void CPU::ldyAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
-    uint8_t value = bus->read(finalAddress);
+    uint8_t value = bus.read(finalAddress);
 
     Y = value;
 
@@ -671,11 +672,11 @@ void CPU::ldyAbsolute()
 }
 void CPU::ldyAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     uint16_t finalAddressX = finalAddress + X;
-    uint8_t value = bus->read(finalAddressX);
+    uint8_t value = bus.read(finalAddressX);
 
     Y = value;
 
@@ -686,100 +687,100 @@ void CPU::ldyAbsoluteX()
 }
 void CPU::staAbsolute()
 {
-    uint8_t lowByte = bus->read(pc);
-    uint8_t highByte = bus->read(pc + 1);
+    uint8_t lowByte = bus.read(pc);
+    uint8_t highByte = bus.read(pc + 1);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     pc += 2;
-    bus->write(finalAddress, A);
+    bus.write(finalAddress, A);
 }
 void CPU::staAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc);
-    uint8_t highByte = bus->read(pc + 1);
+    uint8_t lowByte = bus.read(pc);
+    uint8_t highByte = bus.read(pc + 1);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     pc += 2;
-    bus->write(finalAddress + X, A);
+    bus.write(finalAddress + X, A);
 }
 void CPU::staAbsoluteY()
 {
-    uint8_t lowByte = bus->read(pc);
-    uint8_t highByte = bus->read(pc + 1);
+    uint8_t lowByte = bus.read(pc);
+    uint8_t highByte = bus.read(pc + 1);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     pc += 2;
-    bus->write(finalAddress + Y, A);
+    bus.write(finalAddress + Y, A);
 }
 void CPU::staZeroPage()
 {
-    uint8_t address = bus->read(pc);
+    uint8_t address = bus.read(pc);
     pc += 1;
-    bus->write(address, A);
+    bus.write(address, A);
 }
 void CPU::staZeroPageX()
 {
-    uint8_t address = bus->read(pc);
+    uint8_t address = bus.read(pc);
     pc += 1;
-    bus->write((address + X) & 0xFF, A);
+    bus.write((address + X) & 0xFF, A);
 }
 void CPU::staIndexedIndirect()
 {
-    uint8_t baseAddress = bus->read(pc);
+    uint8_t baseAddress = bus.read(pc);
     pc += 1;
     uint16_t ptr = (baseAddress + X) & 0xFF;
-    uint8_t lowByte = bus->read(ptr);
-    uint8_t highByte = bus->read((ptr + 1) & 0xFF);
+    uint8_t lowByte = bus.read(ptr);
+    uint8_t highByte = bus.read((ptr + 1) & 0xFF);
     uint16_t finalAddress = (highByte << 8) | lowByte;
 
-    bus->write(finalAddress, A);
+    bus.write(finalAddress, A);
 }
 void CPU::staIndirectIndexed()
 {
-    uint8_t baseAddress = bus->read(pc);
+    uint8_t baseAddress = bus.read(pc);
     pc += 1;
-    uint8_t lowByte = bus->read(baseAddress);
-    uint8_t highByte = bus->read((baseAddress + 1) & 0xFF);
+    uint8_t lowByte = bus.read(baseAddress);
+    uint8_t highByte = bus.read((baseAddress + 1) & 0xFF);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     finalAddress += Y;
-    bus->write(finalAddress, A);
+    bus.write(finalAddress, A);
 }
 void CPU::stxAbsolute()
 {
-    uint8_t lowByte = bus->read(pc);
-    uint8_t highByte = bus->read(pc + 1);
+    uint8_t lowByte = bus.read(pc);
+    uint8_t highByte = bus.read(pc + 1);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     pc += 2;
-    bus->write(finalAddress, X);
+    bus.write(finalAddress, X);
 }
 void CPU::stxZeroPage()
 {
-    uint8_t address = bus->read(pc);
+    uint8_t address = bus.read(pc);
     pc += 1;
-    bus->write(address, X);
+    bus.write(address, X);
 }
 void CPU::stxZeroPageY()
 {
-    uint8_t baseAddr = bus->read(pc);
+    uint8_t baseAddr = bus.read(pc);
     pc += 1;
-    bus->write((baseAddr + Y) & 0xFF, X);
+    bus.write((baseAddr + Y) & 0xFF, X);
 }
 void CPU::styAbsolute()
 {
-    uint8_t lowByte = bus->read(pc);
-    uint8_t highByte = bus->read(pc + 1);
+    uint8_t lowByte = bus.read(pc);
+    uint8_t highByte = bus.read(pc + 1);
     uint16_t finalAddress = (highByte << 8) | lowByte;
     pc += 2;
-    bus->write(finalAddress, Y);
+    bus.write(finalAddress, Y);
 }
 void CPU::styZeroPage()
 {
-    uint8_t address = bus->read(pc);
+    uint8_t address = bus.read(pc);
     pc += 1;
-    bus->write(address, Y);
+    bus.write(address, Y);
 }
 void CPU::styZeroPageX()
 {
-    uint8_t baseAddr = bus->read(pc);
+    uint8_t baseAddr = bus.read(pc);
     pc += 1;
-    bus->write((baseAddr + X) & 0xFF, Y);
+    bus.write((baseAddr + X) & 0xFF, Y);
 }
 void CPU::tax()
 {
@@ -812,13 +813,13 @@ void CPU::txs()
 }
 void CPU::pha()
 {
-    bus->write(0x0100 + sp, A);
+    bus.write(0x0100 + sp, A);
     sp--;
 }
 void CPU::pla()
 {
     sp++;
-    A = bus->read(0x0100 + sp);
+    A = bus.read(0x0100 + sp);
 
     if (A == 0)
         P |= 0x02;
@@ -832,36 +833,36 @@ void CPU::pla()
 }
 void CPU::php()
 {
-    bus->write(0x0100 + sp, P | 0x30);
+    bus.write(0x0100 + sp, P | 0x30);
     sp--;
 }
 void CPU::plp()
 {
     sp++;
-    P = bus->read(0x0100 + sp);
+    P = bus.read(0x0100 + sp);
 
     P &= 0xEF;
     P |= 0x20;
 }
 void CPU::jmpAbsolute()
 {
-    uint8_t lowByte = bus->read(pc);
-    uint8_t highByte = bus->read(pc + 1);
+    uint8_t lowByte = bus.read(pc);
+    uint8_t highByte = bus.read(pc + 1);
     uint16_t finalAddress = (highByte << 8) | lowByte;
 
     pc = finalAddress;
 }
 void CPU::jmpIndirect()
 {
-    uint8_t ptrLowByte = bus->read(pc);
-    uint8_t ptrHighByte = bus->read(pc + 1);
+    uint8_t ptrLowByte = bus.read(pc);
+    uint8_t ptrHighByte = bus.read(pc + 1);
     uint16_t finalPtr = (ptrHighByte << 8) | ptrLowByte;
 
-    uint8_t lowByte = bus->read(finalPtr);
-    uint8_t highByte = bus->read(finalPtr + 1);
+    uint8_t lowByte = bus.read(finalPtr);
+    uint8_t highByte = bus.read(finalPtr + 1);
     if (ptrLowByte == 0xFF)
     {
-        highByte = bus->read(finalPtr & 0xFF00);
+        highByte = bus.read(finalPtr & 0xFF00);
     }
     uint16_t finalAddress = ((highByte << 8) | lowByte);
 
@@ -870,16 +871,16 @@ void CPU::jmpIndirect()
 void CPU::jsrAbsolute()
 {
 
-    uint8_t lowByte = bus->read(pc);
-    uint8_t highByte = bus->read(pc + 1);
+    uint8_t lowByte = bus.read(pc);
+    uint8_t highByte = bus.read(pc + 1);
     uint16_t subAddress = (highByte << 8) | lowByte;
 
     uint16_t returnAddress = pc + 2 - 1;
 
-    bus->write(0x0100 + sp, (returnAddress >> 8) & 0xFF);
+    bus.write(0x0100 + sp, (returnAddress >> 8) & 0xFF);
     sp--;
 
-    bus->write(0x0100 + sp, returnAddress & 0xFF);
+    bus.write(0x0100 + sp, returnAddress & 0xFF);
     sp--;
 
     pc = subAddress;
@@ -887,9 +888,9 @@ void CPU::jsrAbsolute()
 void CPU::rts()
 {
     sp++;
-    uint8_t lowByte = bus->read(0x0100 + sp);
+    uint8_t lowByte = bus.read(0x0100 + sp);
     sp++;
-    uint8_t highByte = bus->read(0x0100 + sp);
+    uint8_t highByte = bus.read(0x0100 + sp);
 
     uint16_t subAddress = (highByte << 8) | lowByte;
 
@@ -898,7 +899,7 @@ void CPU::rts()
 void CPU::adcImmediate()
 {
     uint8_t C, V = 0;
-    uint8_t operand = bus->read(pc++);
+    uint8_t operand = bus.read(pc++);
     uint16_t result = A + operand + (P & 0x01);
     uint8_t newRes = result & 0xFF;
     C = (result > 0xFF) ? 1 : 0;
@@ -913,8 +914,8 @@ void CPU::adcImmediate()
 void CPU::adcZeroPage()
 {
     uint8_t C, V = 0;
-    uint8_t zpAddr = bus->read(pc++);
-    uint8_t operand = bus->read(zpAddr);
+    uint8_t zpAddr = bus.read(pc++);
+    uint8_t operand = bus.read(zpAddr);
     uint16_t result = A + operand + (P & 0x01);
     uint8_t newRes = result & 0xFF;
     C = (result > 0xFF) ? 1 : 0;
@@ -929,9 +930,9 @@ void CPU::adcZeroPage()
 void CPU::adcZeroPageX()
 {
     uint8_t C, V = 0;
-    uint8_t baseAddr = bus->read(pc++);
+    uint8_t baseAddr = bus.read(pc++);
     uint8_t zpAddr = (baseAddr + X) & 0xFF;
-    uint8_t operand = bus->read(zpAddr);
+    uint8_t operand = bus.read(zpAddr);
     uint16_t result = A + operand + (P & 0x01);
     uint8_t newRes = result & 0xFF;
     C = (result > 0xFF) ? 1 : 0;
@@ -946,10 +947,10 @@ void CPU::adcZeroPageX()
 void CPU::adcAbsolute()
 {
     uint8_t C, V = 0;
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t baseAddr = (highByte << 8) | lowByte;
-    uint8_t operand = bus->read(baseAddr);
+    uint8_t operand = bus.read(baseAddr);
 
     uint16_t result = A + operand + (P & 0x01);
     uint8_t newRes = result & 0xFF;
@@ -966,10 +967,10 @@ void CPU::adcAbsolute()
 void CPU::adcAbsoluteX()
 {
     uint8_t C, V = 0;
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t baseAddr = ((highByte << 8) | lowByte) + X;
-    uint8_t operand = bus->read(baseAddr);
+    uint8_t operand = bus.read(baseAddr);
 
     if ((baseAddr & 0xFF00) != (lowByte << 8))
         cycles++;
@@ -989,10 +990,10 @@ void CPU::adcAbsoluteX()
 void CPU::adcAbsoluteY()
 {
     uint8_t C, V = 0;
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t baseAddr = ((highByte << 8) | lowByte) + Y;
-    uint8_t operand = bus->read(baseAddr);
+    uint8_t operand = bus.read(baseAddr);
 
     if ((baseAddr & 0xFF00) != (lowByte << 8))
         cycles++;
@@ -1012,14 +1013,14 @@ void CPU::adcAbsoluteY()
 void CPU::adcIndexedIndirect()
 {
     uint8_t C, V = 0;
-    uint8_t zp = bus->read(pc++);
+    uint8_t zp = bus.read(pc++);
     uint8_t ptr = (zp + X) & 0xFF;
-    uint8_t lowByte = bus->read(ptr);
-    uint8_t highByte = bus->read((ptr + 1) & 0xFF);
+    uint8_t lowByte = bus.read(ptr);
+    uint8_t highByte = bus.read((ptr + 1) & 0xFF);
 
     uint16_t effAddress = (highByte << 8) | lowByte;
 
-    uint8_t operand = bus->read(effAddress);
+    uint8_t operand = bus.read(effAddress);
 
     uint16_t result = A + operand + (P & 0x01);
     uint8_t newRes = result & 0xFF;
@@ -1036,16 +1037,16 @@ void CPU::adcIndexedIndirect()
 void CPU::adcIndirectIndexed()
 {
     uint8_t C, V = 0;
-    uint8_t zp = bus->read(pc++);
-    uint8_t lowByte = bus->read(zp);
-    uint8_t highByte = bus->read((zp + 1) & 0xFF);
+    uint8_t zp = bus.read(pc++);
+    uint8_t lowByte = bus.read(zp);
+    uint8_t highByte = bus.read((zp + 1) & 0xFF);
 
     uint16_t effAddress = ((highByte << 8) | lowByte) + Y;
 
     if ((effAddress & 0xFF00) != (lowByte << 8))
         cycles++;
 
-    uint8_t operand = bus->read(effAddress);
+    uint8_t operand = bus.read(effAddress);
 
     uint16_t result = A + operand + (P & 0x01);
     uint8_t newRes = result & 0xFF;
@@ -1061,7 +1062,7 @@ void CPU::adcIndirectIndexed()
 }
 void CPU::sbcImmediate()
 {
-    uint8_t value = bus->read(pc++);
+    uint8_t value = bus.read(pc++);
 
     uint16_t temp = (uint16_t)A - value - (1 - (P & 0x01));
 
@@ -1081,8 +1082,8 @@ void CPU::sbcImmediate()
 }
 void CPU::sbcZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read(addr);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read(addr);
     uint16_t temp = (uint16_t)A - value - (1 - (P & 0x01));
 
     if (temp < 0x100)
@@ -1101,8 +1102,8 @@ void CPU::sbcZeroPage()
 }
 void CPU::sbcZeroPageX()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read(addr + X) & 0xFF;
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read(addr + X) & 0xFF;
     uint16_t temp = (uint16_t)A - value - (1 - (P & 0x01));
 
     if (temp < 0x100)
@@ -1121,10 +1122,10 @@ void CPU::sbcZeroPageX()
 }
 void CPU::sbcAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t baseAddr = ((highByte << 8) | lowByte);
-    uint8_t value = bus->read(baseAddr);
+    uint8_t value = bus.read(baseAddr);
     uint16_t temp = (uint16_t)A - value - (1 - (P & 0x01));
 
     if (temp < 0x100)
@@ -1143,14 +1144,14 @@ void CPU::sbcAbsolute()
 }
 void CPU::sbcAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t baseAddr = ((highByte << 8) | lowByte);
 
     if ((baseAddr & 0xFF00) != ((baseAddr + X) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(baseAddr + X);
+    uint8_t value = bus.read(baseAddr + X);
     uint16_t temp = (uint16_t)A - value - (1 - (P & 0x01));
 
     if (temp < 0x100)
@@ -1169,14 +1170,14 @@ void CPU::sbcAbsoluteX()
 }
 void CPU::sbcAbsoluteY()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t baseAddr = ((highByte << 8) | lowByte);
 
     if ((baseAddr & 0xFF00) != ((baseAddr + Y) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(baseAddr + Y);
+    uint8_t value = bus.read(baseAddr + Y);
     uint16_t temp = (uint16_t)A - value - (1 - (P & 0x01));
 
     if (temp < 0x100)
@@ -1195,15 +1196,15 @@ void CPU::sbcAbsoluteY()
 }
 void CPU::sbcIndexedIndirect()
 {
-    uint8_t zp = bus->read(pc++);
+    uint8_t zp = bus.read(pc++);
     uint8_t ptr = (zp + X) & 0xFF;
 
-    uint8_t lowByte = bus->read(ptr);
-    uint8_t highByte = bus->read((ptr + 1) & 0xFF);
+    uint8_t lowByte = bus.read(ptr);
+    uint8_t highByte = bus.read((ptr + 1) & 0xFF);
 
     uint16_t addr = ((highByte << 8) | lowByte);
 
-    uint8_t value = bus->read(addr);
+    uint8_t value = bus.read(addr);
     uint16_t temp = (uint16_t)A - value - (1 - (P & 0x01));
 
     if (temp < 0x100)
@@ -1222,17 +1223,17 @@ void CPU::sbcIndexedIndirect()
 }
 void CPU::sbcIndirectIndexed()
 {
-    uint8_t zp = bus->read(pc++);
+    uint8_t zp = bus.read(pc++);
 
-    uint8_t lowByte = bus->read(zp);
-    uint8_t highByte = bus->read((zp + 1) & 0xFF);
+    uint8_t lowByte = bus.read(zp);
+    uint8_t highByte = bus.read((zp + 1) & 0xFF);
 
     uint16_t addr = ((highByte << 8) | lowByte);
 
     if ((addr & 0xFF00) != ((addr + Y) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(addr + Y);
+    uint8_t value = bus.read(addr + Y);
     uint16_t temp = (uint16_t)A - value - (1 - (P & 0x01));
 
     if (temp < 0x100)
@@ -1252,7 +1253,7 @@ void CPU::sbcIndirectIndexed()
 void CPU::bcc()
 {
     uint16_t oldPC = pc;
-    int8_t offset = (int8_t)bus->read(pc++);
+    int8_t offset = (int8_t)bus.read(pc++);
     if ((oldPC & 0xFF00) != (pc & 0xFF00))
         cycles++;
     if (!(P & 0x01))
@@ -1263,7 +1264,7 @@ void CPU::bcs()
     uint16_t oldPC = pc;
     if ((oldPC & 0xFF00) != (pc & 0xFF00))
         cycles++;
-    int8_t offset = (int8_t)bus->read(pc++);
+    int8_t offset = (int8_t)bus.read(pc++);
     if ((P & 0x01))
         pc += offset;
 }
@@ -1272,7 +1273,7 @@ void CPU::beq()
     uint16_t oldPC = pc;
     if ((oldPC & 0xFF00) != (pc & 0xFF00))
         cycles++;
-    int8_t offset = (int8_t)bus->read(pc++);
+    int8_t offset = (int8_t)bus.read(pc++);
     if ((P & 0x02))
         pc += offset;
 }
@@ -1281,7 +1282,7 @@ void CPU::bne()
     uint16_t oldPC = pc;
     if ((oldPC & 0xFF00) != (pc & 0xFF00))
         cycles++;
-    int8_t offset = (int8_t)bus->read(pc++);
+    int8_t offset = (int8_t)bus.read(pc++);
     if (!(P & 0x02))
         pc += offset;
 }
@@ -1290,7 +1291,7 @@ void CPU::bmi()
     uint16_t oldPC = pc;
     if ((oldPC & 0xFF00) != (pc & 0xFF00))
         cycles++;
-    int8_t offset = (int8_t)bus->read(pc++);
+    int8_t offset = (int8_t)bus.read(pc++);
     if ((P & 0x80))
         pc += offset;
 }
@@ -1299,7 +1300,7 @@ void CPU::bpl()
     uint16_t oldPC = pc;
     if ((oldPC & 0xFF00) != (pc & 0xFF00))
         cycles++;
-    int8_t offset = (int8_t)bus->read(pc++);
+    int8_t offset = (int8_t)bus.read(pc++);
     if (!(P & 0x80))
         pc += offset;
 }
@@ -1308,7 +1309,7 @@ void CPU::bvc()
     uint16_t oldPC = pc;
     if ((oldPC & 0xFF00) != (pc & 0xFF00))
         cycles++;
-    int8_t offset = (int8_t)bus->read(pc++);
+    int8_t offset = (int8_t)bus.read(pc++);
     if (!(P & 0x40))
         pc += offset;
 }
@@ -1317,369 +1318,369 @@ void CPU::bvs()
     uint16_t oldPC = pc;
     if ((oldPC & 0xFF00) != (pc & 0xFF00))
         cycles++;
-    int8_t offset = (int8_t)bus->read(pc++);
+    int8_t offset = (int8_t)bus.read(pc++);
     if ((P & 0x40))
         pc += offset;
 }
 void CPU::andImmediate()
 {
-    uint8_t value = bus->read(pc++);
+    uint8_t value = bus.read(pc++);
     A = A & value;
     setNZ(A);
 }
 void CPU::andZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read(addr);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read(addr);
 
     A = A & value;
     setNZ(A);
 }
 void CPU::andZeroPageX()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read((addr + X) & 0xFF);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read((addr + X) & 0xFF);
     A = A & value;
     setNZ(A);
 }
 void CPU::andAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    uint8_t value = bus->read(finalAddr);
+    uint8_t value = bus.read(finalAddr);
     A = A & value;
     setNZ(A);
 }
 void CPU::andAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + X) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(finalAddr + X);
+    uint8_t value = bus.read(finalAddr + X);
     A = A & value;
     setNZ(A);
 }
 void CPU::andAbsoluteY()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + Y) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(finalAddr + Y);
+    uint8_t value = bus.read(finalAddr + Y);
     A = A & value;
     setNZ(A);
 }
 void CPU::andIndexedIndirect()
 {
-    uint8_t zp = bus->read(pc++);
-    uint8_t ptr = bus->read(zp + X) & 0xFF;
-    uint8_t lowByte = bus->read(ptr);
-    uint8_t highByte = bus->read((ptr + 1) & 0xFF);
+    uint8_t zp = bus.read(pc++);
+    uint8_t ptr = bus.read(zp + X) & 0xFF;
+    uint8_t lowByte = bus.read(ptr);
+    uint8_t highByte = bus.read((ptr + 1) & 0xFF);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    uint8_t value = bus->read(finalAddr);
+    uint8_t value = bus.read(finalAddr);
     A = A & value;
     setNZ(A);
 }
 void CPU::andIndirectIndexed()
 {
-    uint8_t zp = bus->read(pc++);
-    uint8_t lowByte = bus->read(zp);
-    uint8_t highByte = bus->read((zp + 1) & 0xFF);
+    uint8_t zp = bus.read(pc++);
+    uint8_t lowByte = bus.read(zp);
+    uint8_t highByte = bus.read((zp + 1) & 0xFF);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + Y) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(finalAddr + Y);
+    uint8_t value = bus.read(finalAddr + Y);
     A = A & value;
     setNZ(A);
 }
 void CPU::eorImmediate()
 {
-    uint8_t value = bus->read(pc++);
+    uint8_t value = bus.read(pc++);
     A = A ^ value;
     setNZ(A);
 }
 void CPU::eorZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read(addr);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read(addr);
 
     A = A ^ value;
     setNZ(A);
 }
 void CPU::eorZeroPageX()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read((addr + X) & 0xFF);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read((addr + X) & 0xFF);
     A = A ^ value;
     setNZ(A);
 }
 void CPU::eorAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    uint8_t value = bus->read(finalAddr);
+    uint8_t value = bus.read(finalAddr);
     A = A ^ value;
     setNZ(A);
 }
 void CPU::eorAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + X) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(finalAddr + X);
+    uint8_t value = bus.read(finalAddr + X);
     A = A ^ value;
     setNZ(A);
 }
 void CPU::eorAbsoluteY()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + Y) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(finalAddr + Y);
+    uint8_t value = bus.read(finalAddr + Y);
     A = A ^ value;
     setNZ(A);
 }
 void CPU::eorIndexedIndirect()
 {
-    uint8_t zp = bus->read(pc++);
-    uint8_t ptr = bus->read(zp + X) & 0xFF;
-    uint8_t lowByte = bus->read(ptr);
-    uint8_t highByte = bus->read((ptr + 1) & 0xFF);
+    uint8_t zp = bus.read(pc++);
+    uint8_t ptr = bus.read(zp + X) & 0xFF;
+    uint8_t lowByte = bus.read(ptr);
+    uint8_t highByte = bus.read((ptr + 1) & 0xFF);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    uint8_t value = bus->read(finalAddr);
+    uint8_t value = bus.read(finalAddr);
     A = A ^ value;
     setNZ(A);
 }
 void CPU::eorIndirectIndexed()
 {
-    uint8_t zp = bus->read(pc++);
-    uint8_t lowByte = bus->read(zp);
-    uint8_t highByte = bus->read((zp + 1) & 0xFF);
+    uint8_t zp = bus.read(pc++);
+    uint8_t lowByte = bus.read(zp);
+    uint8_t highByte = bus.read((zp + 1) & 0xFF);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + Y) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(finalAddr + Y);
+    uint8_t value = bus.read(finalAddr + Y);
     A = A ^ value;
     setNZ(A);
 }
 void CPU::oraImmediate()
 {
-    uint8_t value = bus->read(pc++);
+    uint8_t value = bus.read(pc++);
     A = A | value;
     setNZ(A);
 }
 void CPU::oraZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read(addr);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read(addr);
 
     A = A | value;
     setNZ(A);
 }
 void CPU::oraZeroPageX()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read((addr + X) & 0xFF);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read((addr + X) & 0xFF);
     A = A | value;
     setNZ(A);
 }
 void CPU::oraAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    uint8_t value = bus->read(finalAddr);
+    uint8_t value = bus.read(finalAddr);
     A = A | value;
     setNZ(A);
 }
 void CPU::oraAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + X) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(finalAddr + X);
+    uint8_t value = bus.read(finalAddr + X);
     A = A | value;
     setNZ(A);
 }
 void CPU::oraAbsoluteY()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + Y) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(finalAddr + Y);
+    uint8_t value = bus.read(finalAddr + Y);
     A = A | value;
     setNZ(A);
 }
 void CPU::oraIndexedIndirect()
 {
-    uint8_t zp = bus->read(pc++);
-    uint8_t ptr = bus->read(zp + X) & 0xFF;
-    uint8_t lowByte = bus->read(ptr);
-    uint8_t highByte = bus->read((ptr + 1) & 0xFF);
+    uint8_t zp = bus.read(pc++);
+    uint8_t ptr = bus.read(zp + X) & 0xFF;
+    uint8_t lowByte = bus.read(ptr);
+    uint8_t highByte = bus.read((ptr + 1) & 0xFF);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    uint8_t value = bus->read(finalAddr);
+    uint8_t value = bus.read(finalAddr);
     A = A | value;
     setNZ(A);
 }
 void CPU::oraIndirectIndexed()
 {
-    uint8_t zp = bus->read(pc++);
-    uint8_t lowByte = bus->read(zp);
-    uint8_t highByte = bus->read((zp + 1) & 0xFF);
+    uint8_t zp = bus.read(pc++);
+    uint8_t lowByte = bus.read(zp);
+    uint8_t highByte = bus.read((zp + 1) & 0xFF);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + Y) & 0xFF00))
         cycles++;
 
-    uint8_t value = bus->read(finalAddr + Y);
+    uint8_t value = bus.read(finalAddr + Y);
     A = A | value;
     setNZ(A);
 }
 void CPU::cmpImmediate()
 {
-    compare(A, bus->read(pc++));
+    compare(A, bus.read(pc++));
 }
 void CPU::cmpZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    compare(A, bus->read(addr));
+    uint8_t addr = bus.read(pc++);
+    compare(A, bus.read(addr));
 }
 void CPU::cmpZeroPageX()
 {
-    uint8_t addr = bus->read(pc++);
-    compare(A, bus->read((addr + X) & 0xFF));
+    uint8_t addr = bus.read(pc++);
+    compare(A, bus.read((addr + X) & 0xFF));
 }
 void CPU::cmpAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    compare(A, bus->read(finalAddr));
+    compare(A, bus.read(finalAddr));
 }
 void CPU::cmpAbsoluteX()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + X) & 0xFF00))
         cycles++;
 
-    compare(A, bus->read(finalAddr + X));
+    compare(A, bus.read(finalAddr + X));
 }
 void CPU::cmpAbsoluteY()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + Y) & 0xFF00))
         cycles++;
 
-    compare(A, bus->read(finalAddr + Y));
+    compare(A, bus.read(finalAddr + Y));
 }
 void CPU::cmpIndexedIndirect()
 {
-    uint8_t zp = bus->read(pc++);
-    uint8_t ptr = bus->read(zp + X) & 0xFF;
-    uint8_t lowByte = bus->read(ptr);
-    uint8_t highByte = bus->read((ptr + 1) & 0xFF);
+    uint8_t zp = bus.read(pc++);
+    uint8_t ptr = bus.read(zp + X) & 0xFF;
+    uint8_t lowByte = bus.read(ptr);
+    uint8_t highByte = bus.read((ptr + 1) & 0xFF);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    compare(A, bus->read(finalAddr));
+    compare(A, bus.read(finalAddr));
 }
 void CPU::cmpIndirectIndexed()
 {
-    uint8_t zp = bus->read(pc++);
-    uint8_t lowByte = bus->read(zp);
-    uint8_t highByte = bus->read((zp + 1) & 0xFF);
+    uint8_t zp = bus.read(pc++);
+    uint8_t lowByte = bus.read(zp);
+    uint8_t highByte = bus.read((zp + 1) & 0xFF);
 
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
     if ((finalAddr & 0xFF00) != ((finalAddr + Y) & 0xFF00))
         cycles++;
 
-    compare(A, bus->read(finalAddr + Y));
+    compare(A, bus.read(finalAddr + Y));
 }
 void CPU::cpxImmediate()
 {
-    compare(X, bus->read(pc++));
+    compare(X, bus.read(pc++));
 }
 void CPU::cpxZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    compare(X, bus->read(addr));
+    uint8_t addr = bus.read(pc++);
+    compare(X, bus.read(addr));
 }
 void CPU::cpxAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    compare(X, bus->read(finalAddr));
+    compare(X, bus.read(finalAddr));
 }
 void CPU::cpyImmediate()
 {
-    compare(Y, bus->read(pc++));
+    compare(Y, bus.read(pc++));
 }
 void CPU::cpyZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    compare(Y, bus->read(addr));
+    uint8_t addr = bus.read(pc++);
+    compare(Y, bus.read(addr));
 }
 void CPU::cpyAbsolute()
 {
-    uint8_t lowByte = bus->read(pc++);
-    uint8_t highByte = bus->read(pc++);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddr = (highByte << 8) | lowByte;
 
-    compare(Y, bus->read(finalAddr));
+    compare(Y, bus.read(finalAddr));
 }
 void CPU::aslAccumulator()
 {
@@ -1696,8 +1697,8 @@ void CPU::aslAccumulator()
 }
 void CPU::aslZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read(addr);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read(addr);
     if (value & 0x80)
     {
         P |= 0x01;
@@ -1707,13 +1708,13 @@ void CPU::aslZeroPage()
         P &= ~0x01;
     }
     value = value <<= 1;
-    bus->write(addr, value);
+    bus.write(addr, value);
     setNZ(value);
 }
 void CPU::aslZeroPageX()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read((addr + X) & 0xFF);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read((addr + X) & 0xFF);
     if (value & 0x80)
     {
         P |= 0x01;
@@ -1723,16 +1724,16 @@ void CPU::aslZeroPageX()
         P &= ~0x01;
     }
     value = value <<= 1;
-    bus->write((addr + X) & 0xFF, value);
+    bus.write((addr + X) & 0xFF, value);
     setNZ(value);
 }
 void CPU::aslAbsolute()
 {
-    uint8_t low = bus->read(pc++);
-    uint8_t high = bus->read(pc++);
+    uint8_t low = bus.read(pc++);
+    uint8_t high = bus.read(pc++);
 
     uint16_t finalAddr = (high << 8) | low;
-    uint8_t value = bus->read(finalAddr);
+    uint8_t value = bus.read(finalAddr);
     if (value & 0x80)
     {
         P |= 0x01;
@@ -1742,16 +1743,16 @@ void CPU::aslAbsolute()
         P &= ~0x01;
     }
     value = value <<= 1;
-    bus->write(finalAddr, value);
+    bus.write(finalAddr, value);
     setNZ(value);
 }
 void CPU::aslAbsoluteX()
 {
-    uint8_t low = bus->read(pc++);
-    uint8_t high = bus->read(pc++);
+    uint8_t low = bus.read(pc++);
+    uint8_t high = bus.read(pc++);
 
     uint16_t finalAddr = (high << 8) | low;
-    uint8_t value = bus->read(finalAddr + X);
+    uint8_t value = bus.read(finalAddr + X);
     if (value & 0x80)
     {
         P |= 0x01;
@@ -1761,7 +1762,7 @@ void CPU::aslAbsoluteX()
         P &= ~0x01;
     }
     value = value <<= 1;
-    bus->write(finalAddr + X, value);
+    bus.write(finalAddr + X, value);
     setNZ(value);
 }
 void CPU::lsrAccumulator()
@@ -1781,8 +1782,8 @@ void CPU::lsrAccumulator()
 }
 void CPU::lsrZeroPage()
 {
-    uint8_t addr = bus->read(pc++);
-    uint8_t value = bus->read(addr);
+    uint8_t addr = bus.read(pc++);
+    uint8_t value = bus.read(addr);
 
     if (value & 0x01)
         P |= 0x01;
@@ -1792,7 +1793,7 @@ void CPU::lsrZeroPage()
     value >>= 1;
     P &= ~0x80;
 
-    bus->write(addr, value);
+    bus.write(addr, value);
 
     if (value == 0)
         P |= 0x02;
@@ -1801,9 +1802,9 @@ void CPU::lsrZeroPage()
 }
 void CPU::lsrZeroPageX()
 {
-    uint8_t addr = bus->read(pc++);
+    uint8_t addr = bus.read(pc++);
     uint8_t effAddr = (addr + X) & 0xFF;
-    uint8_t value = bus->read(effAddr);
+    uint8_t value = bus.read(effAddr);
 
     if (value & 0x01)
         P |= 0x01;
@@ -1813,7 +1814,7 @@ void CPU::lsrZeroPageX()
     value >>= 1;
     P &= ~0x80;
 
-    bus->write(effAddr, value);
+    bus.write(effAddr, value);
 
     if (value == 0)
         P |= 0x02;
@@ -1822,10 +1823,10 @@ void CPU::lsrZeroPageX()
 }
 void CPU::lsrAbsolute()
 {
-    uint8_t low = bus->read(pc++);
-    uint8_t high = bus->read(pc++);
+    uint8_t low = bus.read(pc++);
+    uint8_t high = bus.read(pc++);
     uint16_t finalAddr = (high << 8) | low;
-    uint8_t value = bus->read(finalAddr);
+    uint8_t value = bus.read(finalAddr);
 
     if (value & 0x01)
         P |= 0x01;
@@ -1835,7 +1836,7 @@ void CPU::lsrAbsolute()
     value >>= 1;
     P &= ~0x80;
 
-    bus->write(finalAddr, value);
+    bus.write(finalAddr, value);
 
     if (value == 0)
         P |= 0x02;
@@ -1844,11 +1845,11 @@ void CPU::lsrAbsolute()
 }
 void CPU::lsrAbsoluteX()
 {
-    uint8_t low = bus->read(pc++);
-    uint8_t high = bus->read(pc++);
+    uint8_t low = bus.read(pc++);
+    uint8_t high = bus.read(pc++);
     uint16_t finalAddr = (high << 8) | low;
     uint16_t effAddr = finalAddr + X;
-    uint8_t value = bus->read(effAddr);
+    uint8_t value = bus.read(effAddr);
 
     if (value & 0x01)
         P |= 0x01;
@@ -1858,7 +1859,7 @@ void CPU::lsrAbsoluteX()
     value >>= 1;
     P &= ~0x80;
 
-    bus->write(effAddr, value);
+    bus.write(effAddr, value);
 
     if (value == 0)
         P |= 0x02;
@@ -1883,8 +1884,8 @@ void CPU::rorAccumulator()
 }
 void CPU::rorZeroPage()
 {
-    uint8_t zpAddr = bus->read(pc++);
-    uint8_t value = bus->read(zpAddr);
+    uint8_t zpAddr = bus.read(pc++);
+    uint8_t value = bus.read(zpAddr);
     uint8_t oldC = P & 0x01;
     uint8_t newC = value & 0x01;
 
@@ -1897,13 +1898,13 @@ void CPU::rorZeroPage()
         P |= 0x01;
     else
         P &= ~0x01;
-    bus->write(zpAddr, value);
+    bus.write(zpAddr, value);
     setNZ(value);
 }
 void CPU::rorZeroPageX()
 {
-    uint8_t zpAddr = bus->read(pc++);
-    uint8_t value = bus->read((zpAddr + X) & 0xFF);
+    uint8_t zpAddr = bus.read(pc++);
+    uint8_t value = bus.read((zpAddr + X) & 0xFF);
     uint8_t oldC = P & 0x01;
     uint8_t newC = value & 0x01;
 
@@ -1916,16 +1917,16 @@ void CPU::rorZeroPageX()
         P |= 0x01;
     else
         P &= ~0x01;
-    bus->write((zpAddr + X) & 0xFF, value);
+    bus.write((zpAddr + X) & 0xFF, value);
     setNZ(value);
 }
 void CPU::rorAbsolute()
 {
-    uint8_t low = bus->read(pc++);
-    uint8_t high = bus->read(pc++);
+    uint8_t low = bus.read(pc++);
+    uint8_t high = bus.read(pc++);
 
     uint16_t addr = (high << 8) | low;
-    uint8_t value = bus->read(addr);
+    uint8_t value = bus.read(addr);
 
     uint8_t oldC = P & 0x01;
     uint8_t newC = value & 0x01;
@@ -1939,16 +1940,16 @@ void CPU::rorAbsolute()
         P |= 0x01;
     else
         P &= ~0x01;
-    bus->write(addr, value);
+    bus.write(addr, value);
     setNZ(value);
 }
 void CPU::rorAbsoluteX()
 {
-    uint8_t low = bus->read(pc++);
-    uint8_t high = bus->read(pc++);
+    uint8_t low = bus.read(pc++);
+    uint8_t high = bus.read(pc++);
 
     uint16_t addr = (high << 8) | low;
-    uint8_t value = bus->read(addr + X);
+    uint8_t value = bus.read(addr + X);
 
     uint8_t oldC = P & 0x01;
     uint8_t newC = value & 0x01;
@@ -1962,7 +1963,7 @@ void CPU::rorAbsoluteX()
         P |= 0x01;
     else
         P &= ~0x01;
-    bus->write(addr + X, value);
+    bus.write(addr + X, value);
     setNZ(value);
 }
 void CPU::rolAccumulator()
@@ -1985,8 +1986,8 @@ void CPU::rolAccumulator()
 
 void CPU::rolZeroPage()
 {
-    uint8_t zpAddr = bus->read(pc++);
-    uint8_t value = bus->read(zpAddr);
+    uint8_t zpAddr = bus.read(pc++);
+    uint8_t value = bus.read(zpAddr);
 
     uint8_t oldCarry = P & 0x01;
     uint8_t newCarry = (value & 0x80) >> 7;
@@ -2001,15 +2002,15 @@ void CPU::rolZeroPage()
     else
         P &= ~0x01;
 
-    bus->write(zpAddr, value);
+    bus.write(zpAddr, value);
     setNZ(value);
 }
 
 void CPU::rolZeroPageX()
 {
-    uint8_t zpAddr = bus->read(pc++);
+    uint8_t zpAddr = bus.read(pc++);
     uint8_t addr = (zpAddr + X) & 0xFF;
-    uint8_t value = bus->read(addr);
+    uint8_t value = bus.read(addr);
 
     uint8_t oldCarry = P & 0x01;
     uint8_t newCarry = (value & 0x80) >> 7;
@@ -2024,16 +2025,16 @@ void CPU::rolZeroPageX()
     else
         P &= ~0x01;
 
-    bus->write(addr, value);
+    bus.write(addr, value);
     setNZ(value);
 }
 
 void CPU::rolAbsolute()
 {
-    uint8_t low = bus->read(pc++);
-    uint8_t high = bus->read(pc++);
+    uint8_t low = bus.read(pc++);
+    uint8_t high = bus.read(pc++);
     uint16_t addr = (high << 8) | low;
-    uint8_t value = bus->read(addr);
+    uint8_t value = bus.read(addr);
 
     uint8_t oldCarry = P & 0x01;
     uint8_t newCarry = (value & 0x80) >> 7;
@@ -2048,16 +2049,16 @@ void CPU::rolAbsolute()
     else
         P &= ~0x01;
 
-    bus->write(addr, value);
+    bus.write(addr, value);
     setNZ(value);
 }
 
 void CPU::rolAbsoluteX()
 {
-    uint8_t low = bus->read(pc++);
-    uint8_t high = bus->read(pc++);
+    uint8_t low = bus.read(pc++);
+    uint8_t high = bus.read(pc++);
     uint16_t addr = ((high << 8) | low) + X;
-    uint8_t value = bus->read(addr);
+    uint8_t value = bus.read(addr);
 
     uint8_t oldCarry = P & 0x01;
     uint8_t newCarry = (value & 0x80) >> 7;
@@ -2072,7 +2073,7 @@ void CPU::rolAbsoluteX()
     else
         P &= ~0x01;
 
-    bus->write(addr, value);
+    bus.write(addr, value);
     setNZ(value);
 }
 
@@ -2080,7 +2081,7 @@ void CPU::clock()
 {
     if (cycles == 0)
     {
-        uint8_t opcode = bus->read(pc);
+        uint8_t opcode = bus.read(pc);
         Instruction &instr = table[opcode];
 
         (this->*instr.execute)();
@@ -2093,11 +2094,11 @@ void CPU::clock()
         NMI = false;
         pushPC();
         pushStatus();
-        pc = bus->read(0xFFFA);
+        pc = bus.read(0xFFFA);
         cycles += 7;
     }
 }
 void CPU::connectBus(Bus *b)
 {
-    bus = b;
+    bus = *b;
 }
