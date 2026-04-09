@@ -48,7 +48,7 @@ uint8_t Bus::read(uint16_t addr)
         }
         return ppu->ppuReadRaw(addr & 0x7);
     }
-    else if (addr >= 0x6000)
+    else if (addr >= 0x4020)
     {
         if (!mapper)
         {

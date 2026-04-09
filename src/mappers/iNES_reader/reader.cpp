@@ -85,7 +85,8 @@ void dumpROM(const char *filename)
         }
         rom.close();
         Mapper *mapper = chooseMapper();
-        if (!mapper)
+        bus.mapper = chooseMapper();
+        if (!bus.mapper)
             return;
     }
     else
@@ -99,15 +100,23 @@ Mapper *chooseMapper()
     switch (mapperID)
     {
     case 0:
+        std::cout << "NROM chosen" << std::endl;
         return new NROM(PRG_ROM, CHR_ROM, verticalMirroring);
+
     case 1:
+        std::cout << "MMC1 chosen" << std::endl;
         return new MMC1(PRG_ROM, CHR_ROM, fourScreenMirroring, verticalMirroring);
     case 2:
+        std::cout << "UXROM chosen" << std::endl;
         return new UXROM(PRG_ROM, CHR_ROM);
     case 3:
+        std::cout << "CNROM chosen" << std::endl;
         return new CNROM(PRG_ROM, CHR_ROM);
+
     case 4:
+        std::cout << "MMC3 chosen" << std::endl;
         return new MMC3(PRG_ROM, CHR_ROM, verticalMirroring);
+
     default:
         std::cerr << "NEScape does not support mapper " << mapperID << '\n';
         return nullptr;

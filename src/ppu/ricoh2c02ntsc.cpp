@@ -166,7 +166,7 @@ uint8_t PPU ::ppuReadRaw(uint16_t addr)
     unsigned int VRAMindex;
 
     if (addr >= 0x0000 && addr <= 0x1FFF)
-        return mapper->ppuRead(addr);
+        return bus.mapper->ppuRead(addr);
     lastPPUAddress = addr;
     if (addr >= 0x2000 && addr <= 0x2FFF)
     {

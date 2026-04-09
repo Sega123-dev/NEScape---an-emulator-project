@@ -6,6 +6,11 @@ Instruction table[256];
 
 CPU::CPU()
 {
+    for (int i = 0; i < 256; i++)
+    {
+        table[i] = {"???", &CPU::nop, AddressingMode::IMPLIED, 2};
+    }
+
     table[0x00] = {"BRK", &CPU::brk, AddressingMode::IMPLIED, 7};
     table[0xEA] = {"NOP", &CPU::nop, AddressingMode::IMPLIED, 2};
     table[0x40] = {"RTI", &CPU::rti, AddressingMode::IMPLIED, 6};
@@ -269,7 +274,7 @@ void CPU::reset()
     uint8_t low = bus.read(0xFFFC);
     uint8_t high = bus.read(0xFFFD);
     pc = (high << 8) | low;
-    std::cout << "Reset Vector: " << pc << "\n";
+    std::cout << "Reset Vector: " << std::hex << pc << "\n";
 }
 void CPU::brk()
 {
@@ -2082,6 +2087,12 @@ void CPU::clock()
     {
         uint8_t opcode = bus.read(pc);
         Instruction &instr = table[opcode];
+
+        if (!instr.execute)
+        {
+            std::cerr << "CRASH: opcode " << std::hex << opcode << " has null execute pointer!\n";
+            return;
+        }
 
         (this->*instr.execute)();
         cycles = instr.cycles;

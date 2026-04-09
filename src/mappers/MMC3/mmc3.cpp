@@ -36,6 +36,12 @@ MMC3::MMC3(std::vector<uint8_t> &prgData, std::vector<uint8_t> &chrData, const b
 
     wram.resize(0x2000, 0);
     reset();
+
+    // Safe defaults
+    bankRegister[6] = 0;
+    bankRegister[7] = 1;
+
+    updatePRGBanks();
 }
 void MMC3::updatePRGBanks()
 {
@@ -196,6 +202,8 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
 }
 uint8_t MMC3::ppuRead(uint16_t addr)
 {
+    addr &= 0x1FFF;
+
     if (addr >= 0x0000 && addr <= 0x1FFF)
     {
         uint8_t slot = addr / 0x400;

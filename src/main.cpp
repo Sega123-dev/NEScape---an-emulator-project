@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     PPU ppu;
     std::cout << "ROM DUMP\n";
 
-    dumpROM("roms/castlevania.nes");
+    dumpROM("roms/smb3.nes");
 
     std::cout << "CONNECT\n";
 
