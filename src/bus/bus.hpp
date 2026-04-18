@@ -27,14 +27,8 @@ public:
     uint8_t read(uint16_t addr);
 
     CPU *cpu;
-    MMC3 *mmc3;
     PPU *ppu;
-    Mapper *mapper;
-    CNROM *cnrom;
-    MMC1 *mmc1;
-    NROM *nrom;
-    UXROM *uxrom;
-
+    Mapper *mapper = nullptr;
     uint8_t ram[2048];
 };
 

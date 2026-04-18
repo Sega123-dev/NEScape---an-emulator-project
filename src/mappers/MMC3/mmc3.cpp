@@ -4,13 +4,24 @@
 #include <vector>
 #include "../../bus/bus.hpp"
 #include "../../ppu/ricoh2c02ntsc.hpp"
-
 PPU *ppu;
 void MMC3::reset()
 {
-    bankSelect = 0;
+    for (int i = 0; i < 8; i++)
+        bankRegister[i] = 0;
+    for (int i = 0; i < 4; i++)
+        prgBankMap[i] = 0;
+    for (int i = 0; i < 8; i++)
+        chrBankMap[i] = 0;
+
+    bankRegister[6] = 0;
+    bankRegister[7] = 1;
+
     prgMode = 0;
     chrMode = 0;
+
+    bankSelect = 0;
+
     mirrorHorizontal = true;
     wramEnabled = false;
     wramWriteProtected = false;
@@ -18,7 +29,17 @@ void MMC3::reset()
     irqReloadValue = 0;
     irqEnabled = false;
     irqReloadFlag = false;
-    prevA12 = (ppu->getLastAddress() & 0x1000) >> 12;
+    if (ppu)
+    {
+        prevA12 = (ppu->getLastAddress() & 0x1000) >> 12;
+    }
+    else
+    {
+        prevA12 = 0;
+    }
+
+    updatePRGBanks();
+    updateCHRBanks();
 }
 MMC3::MMC3(std::vector<uint8_t> &prgData, std::vector<uint8_t> &chrData, const bool &vertMirrorPort)
 {
@@ -36,32 +57,25 @@ MMC3::MMC3(std::vector<uint8_t> &prgData, std::vector<uint8_t> &chrData, const b
 
     wram.resize(0x2000, 0);
     reset();
-
-    // Safe defaults
-    bankRegister[6] = 0;
-    bankRegister[7] = 1;
-
-    updatePRGBanks();
+    std::cout << "PRG size: " << prg.size() << std::endl;
 }
 void MMC3::updatePRGBanks()
 {
     int lastBank = (prg.size() / 0x2000) - 1;
     int secondLastBank = lastBank - 1;
 
-    int totalBanks = prg.size() / 0x2000;
-
     if (prgMode == 0)
     {
-        prgBankMap[0] = bankRegister[6] % totalBanks;
-        prgBankMap[1] = secondLastBank;
-        prgBankMap[2] = bankRegister[7] % totalBanks;
+        prgBankMap[0] = bankRegister[6] % (prg.size() / 0x2000);
+        prgBankMap[1] = bankRegister[7] % (prg.size() / 0x2000);
+        prgBankMap[2] = secondLastBank;
         prgBankMap[3] = lastBank;
     }
-    else if (prgMode == 1)
+    else
     {
         prgBankMap[0] = secondLastBank;
-        prgBankMap[1] = bankRegister[7];
-        prgBankMap[2] = bankRegister[6];
+        prgBankMap[1] = bankRegister[7] % (prg.size() / 0x2000);
+        prgBankMap[2] = bankRegister[6] % (prg.size() / 0x2000);
         prgBankMap[3] = lastBank;
     }
 }
@@ -113,6 +127,14 @@ void MMC3::clockIRQ(int currentA12)
 }
 uint8_t MMC3::cpuRead(uint16_t addr)
 {
+    if (addr == 0xFFFC)
+    {
+        uint8_t slot = (addr - 0x8000) / 0x2000;
+        uint32_t bankNumber = prgBankMap[slot];
+        uint32_t romIndex = bankNumber * 0x2000 + (addr % 0x2000);
+        std::cout << "VECTOR READ BANK=" << bankNumber
+                  << " INDEX=" << romIndex << "\n";
+    }
     if (addr >= 0x6000 && addr <= 0x7FFF)
     {
         if (wramEnabled)
@@ -124,7 +146,6 @@ uint8_t MMC3::cpuRead(uint16_t addr)
             return 0;
         }
     }
-
     if (addr >= 0x8000)
     {
         uint8_t slot = (addr - 0x8000) / 0x2000;
@@ -134,6 +155,7 @@ uint8_t MMC3::cpuRead(uint16_t addr)
             return 0xFF;
         return prg[romIndex];
     }
+
     return 0;
 }
 void MMC3::cpuWrite(uint16_t addr, uint8_t data)
@@ -174,13 +196,6 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
     {
         wramEnabled = data & 0x80;
         wramWriteProtected = data & 0x40;
-        if (wramEnabled)
-        {
-            if (!wramWriteProtected)
-            {
-                wram[addr - 0x6000] = data;
-            }
-        }
     }
     else if (addr == 0xC000)
     {
@@ -306,16 +321,5 @@ void MMC3::ppuWrite(uint16_t addr, uint8_t data)
 }
 Mirror MMC3::getMirror()
 {
-    if (mirrorHorizontal)
-    {
-        HORIZONTAL;
-    }
-    else
-    {
-        VERTICAL;
-    }
-}
-void MMC3::connectBus(Bus *b)
-{
-    bus = b;
+    return mirrorHorizontal ? HORIZONTAL : VERTICAL;
 }

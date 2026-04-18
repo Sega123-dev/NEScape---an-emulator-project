@@ -10,23 +10,22 @@ int main(int argc, char *argv[])
     std::cout << "START\n";
 
     Bus nes;
-    MMC3 mmc3;
     CPU cpu;
     PPU ppu;
     std::cout << "ROM DUMP\n";
 
-    dumpROM("roms/smb3.nes");
+    Mapper *mapper = dumpROM("roms/smb3.nes");
 
-    std::cout << "CONNECT\n";
+    if (!mapper)
+        return -1;
 
-    nes.mmc3 = &mmc3;
-    nes.mapper = &mmc3;
+    nes.mapper = mapper;
     nes.cpu = &cpu;
     nes.ppu = &ppu;
 
-    mmc3.connectBus(&nes);
     nes.cpu->connectBus(&nes);
     nes.ppu->connectBus(&nes);
+
     nes.cpu->reset();
 
     std::cout << "FRAME\n";

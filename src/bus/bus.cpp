@@ -1,5 +1,4 @@
 #include "bus.hpp"
-Bus bus;
 void Bus::write(uint16_t addr, uint8_t data)
 {
     if (addr >= 0x0000 && addr <= 0x1FFF)
@@ -32,7 +31,11 @@ void Bus::write(uint16_t addr, uint8_t data)
 }
 uint8_t Bus::read(uint16_t addr)
 {
-    std::cout << "READS CALLED\n";
+    if (!mapper)
+    {
+        std::cerr << "NULL MAPPER ACCESS\n";
+        return 0xFF;
+    }
     if (addr >= 0x0000 && addr <= 0x1FFF)
         return ram[addr & 0x07FF];
     else if (addr >= 0x2000 && addr <= 0x3FFF)

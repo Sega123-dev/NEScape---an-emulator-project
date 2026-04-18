@@ -24,75 +24,99 @@ bool fourScreenMirroring;
 std::vector<uint8_t> PRG_ROM;
 std::vector<uint8_t> CHR_ROM;
 
-void dumpROM(const char *filename)
+Mapper *dumpROM(const char *filename)
 {
     std::vector<char> headerBuffer;
     std::vector<char> prgBuffer;
     std::vector<char> chrBuffer;
     std::ifstream rom(filename, std::ios::binary);
-    headerBuffer.resize(16);
+
     if (rom.fail())
     {
-        std::cerr << "Failed to run ROM(Error:NotFound)." << '\n';
-        return;
+        std::cerr << "Failed to open ROM\n";
+        return nullptr;
     }
-    if (rom.read(headerBuffer.data(), 16))
+
+    headerBuffer.resize(16);
+
+    if (!rom.read(headerBuffer.data(), 16))
     {
-        for (int i = 0; i < 16; i++)
-        {
-            header[i] = static_cast<uint8_t>(headerBuffer[i]);
-        }
-        std::cout << "Header parsed\n";
+        std::cerr << "Failed to read header\n";
+        return nullptr;
     }
-    if (header[0] == 0x4E && header[1] == 0x45 && header[2] == 0x53 && header[3] == 0x1A)
+
+    for (int i = 0; i < 16; i++)
+        header[i] = static_cast<uint8_t>(headerBuffer[i]);
+
+    std::cout << "Header parsed\n";
+
+    if (!(header[0] == 0x4E && header[1] == 0x45 && header[2] == 0x53 && header[3] == 0x1A))
     {
-        flag6 = header[6];
-        flag7 = header[7];
-        prgRomSize = header[4] * 0x4000;
-        chrRomSize = header[5] * 0x2000;
+        std::cerr << "Invalid NES ROM\n";
+        return nullptr;
+    }
 
-        prgBuffer.resize(prgRomSize);
-        chrBuffer.resize(chrRomSize);
+    flag6 = header[6];
+    flag7 = header[7];
 
-        verticalMirroring = (flag6 & 1);
-        SRAM = (flag6 & 2);
-        fourScreenMirroring = (flag6 & 8);
+    prgRomSize = header[4] * 0x4000;
+    chrRomSize = header[5] * 0x2000;
 
-        mapperID = ((flag7 & 0xF0) | (flag6 >> 4));
+    verticalMirroring = (flag6 & 1);
+    SRAM = (flag6 & 2);
+    fourScreenMirroring = (flag6 & 8);
 
-        bool trainer = (flag6 & 4) != 0;
-        if (trainer)
-            rom.seekg(512, std::ios::cur);
+    mapperID = ((flag7 & 0xF0) | (flag6 >> 4));
 
-        if (rom.read(prgBuffer.data(), prgRomSize))
-        {
-            PRG_ROM.assign(prgBuffer.begin(), prgBuffer.end());
-        }
-        std::cout << "PRG_ROM parsed\n";
-        if (chrRomSize == 0)
-        {
-            CHR_ROM.resize(0x2000, 0); // 8 KB RAM
-            std::cout << "Detected CHR RAM, allocating 8 KB\n";
-        }
-        else
-        {
-            chrBuffer.resize(chrRomSize);
-            if (rom.read(chrBuffer.data(), chrRomSize))
-            {
-                CHR_ROM.assign(chrBuffer.begin(), chrBuffer.end());
-                std::cout << "CHR_ROM parsed\n";
-            }
-        }
-        rom.close();
-        Mapper *mapper = chooseMapper();
-        bus.mapper = chooseMapper();
-        if (!bus.mapper)
-            return;
+    bool trainer = (flag6 & 4) != 0;
+    if (trainer)
+        rom.seekg(512, std::ios::cur);
+
+    prgBuffer.resize(prgRomSize);
+    chrBuffer.resize(chrRomSize);
+
+    rom.read(prgBuffer.data(), prgRomSize);
+    PRG_ROM.assign(prgBuffer.begin(), prgBuffer.end());
+
+    std::cout << "PRG first 4 bytes: "
+              << std::hex
+              << (int)PRG_ROM[0] << " "
+              << (int)PRG_ROM[1] << " "
+              << (int)PRG_ROM[2] << " "
+              << (int)PRG_ROM[3] << "\n";
+    std::cout << "PRG last 4 bytes: "
+              << std::hex
+              << (int)PRG_ROM[prgRomSize - 4] << " "
+              << (int)PRG_ROM[prgRomSize - 3] << " "
+              << (int)PRG_ROM[prgRomSize - 2] << " "
+              << (int)PRG_ROM[prgRomSize - 1] << "\n";
+    if (chrRomSize == 0)
+    {
+        CHR_ROM.resize(0x2000, 0);
+        std::cout << "CHR RAM allocated\n";
     }
     else
     {
-        std::cerr << "This file is not NES ROM file.Please provide a file that is using iNES format." << '\n';
+        rom.read(chrBuffer.data(), chrRomSize);
+        CHR_ROM.assign(chrBuffer.begin(), chrBuffer.end());
+        std::cout << "CHR_ROM parsed\n";
     }
+
+    rom.close();
+
+    std::cout << "Reader PRG size: " << PRG_ROM.size() << "\n";
+
+    Mapper *mapper = chooseMapper();
+
+    if (!mapper)
+    {
+        std::cerr << "Mapper creation failed\n";
+        return nullptr;
+    }
+    std::cout << "PRG blocks: " << (int)header[4] << "\n";
+    std::cout << "CHR blocks: " << (int)header[5] << "\n";
+    std::cout << "Mapper: " << mapperID << "\n";
+    return mapper;
 }
 
 Mapper *chooseMapper()
@@ -122,7 +146,3 @@ Mapper *chooseMapper()
         return nullptr;
     }
 };
-void connectReader(Bus *b)
-{
-    bus = *b;
-}

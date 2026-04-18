@@ -1,7 +1,7 @@
 #include "6502ricoh.hpp"
 #include <cstdlib>
 CPU cpu;
-
+Bus bus;
 Instruction table[256];
 
 CPU::CPU()

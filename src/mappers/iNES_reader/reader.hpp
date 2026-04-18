@@ -6,7 +6,7 @@
 
 class Mapper;
 class Bus;
-void dumpROM(const char *filename);
+Mapper *dumpROM(const char *filename);
 Mapper *chooseMapper();
 
 extern uint8_t header[16];
