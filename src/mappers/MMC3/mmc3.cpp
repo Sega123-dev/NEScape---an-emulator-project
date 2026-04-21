@@ -41,6 +41,7 @@ void MMC3::reset()
     updatePRGBanks();
     updateCHRBanks();
 }
+
 MMC3::MMC3(std::vector<uint8_t> &prgData, std::vector<uint8_t> &chrData, const bool &vertMirrorPort)
 {
     prg = prgData;
@@ -57,6 +58,10 @@ MMC3::MMC3(std::vector<uint8_t> &prgData, std::vector<uint8_t> &chrData, const b
 
     wram.resize(0x2000, 0);
     reset();
+    std::cout << "MAP: ";
+    for (int i = 0; i < 4; i++)
+        std::cout << prgBankMap[i] << " ";
+    std::cout << "\n";
     std::cout << "PRG size: " << prg.size() << std::endl;
 }
 void MMC3::updatePRGBanks()
@@ -64,18 +69,21 @@ void MMC3::updatePRGBanks()
     int lastBank = (prg.size() / 0x2000) - 1;
     int secondLastBank = lastBank - 1;
 
+    uint8_t r6 = bankRegister[6] % (prg.size() / 0x2000);
+    uint8_t r7 = bankRegister[7] % (prg.size() / 0x2000);
+
     if (prgMode == 0)
     {
-        prgBankMap[0] = bankRegister[6] % (prg.size() / 0x2000);
-        prgBankMap[1] = bankRegister[7] % (prg.size() / 0x2000);
+        prgBankMap[0] = r6;
+        prgBankMap[1] = r7;
         prgBankMap[2] = secondLastBank;
         prgBankMap[3] = lastBank;
     }
     else
     {
         prgBankMap[0] = secondLastBank;
-        prgBankMap[1] = bankRegister[7] % (prg.size() / 0x2000);
-        prgBankMap[2] = bankRegister[6] % (prg.size() / 0x2000);
+        prgBankMap[1] = r7;
+        prgBankMap[2] = r6;
         prgBankMap[3] = lastBank;
     }
 }
@@ -127,14 +135,6 @@ void MMC3::clockIRQ(int currentA12)
 }
 uint8_t MMC3::cpuRead(uint16_t addr)
 {
-    if (addr == 0xFFFC)
-    {
-        uint8_t slot = (addr - 0x8000) / 0x2000;
-        uint32_t bankNumber = prgBankMap[slot];
-        uint32_t romIndex = bankNumber * 0x2000 + (addr % 0x2000);
-        std::cout << "VECTOR READ BANK=" << bankNumber
-                  << " INDEX=" << romIndex << "\n";
-    }
     if (addr >= 0x6000 && addr <= 0x7FFF)
     {
         if (wramEnabled)
@@ -150,7 +150,13 @@ uint8_t MMC3::cpuRead(uint16_t addr)
     {
         uint8_t slot = (addr - 0x8000) / 0x2000;
         uint32_t bankNumber = prgBankMap[slot];
-        uint32_t romIndex = bankNumber * 0x2000 + (addr % 0x2000);
+        uint32_t romIndex = bankNumber * 0x2000 + (addr & 0x1FFF);
+        std::cout << std::hex
+                  << (int)prg[romIndex] << " "
+                  << (int)prg[romIndex + 1] << "\n";
+        std::cout << "Last bytes: "
+                  << (int)prg[prg.size() - 4] << " "
+                  << (int)prg[prg.size() - 3] << "\n";
         if (romIndex >= prg.size())
             return 0xFF;
         return prg[romIndex];
