@@ -151,9 +151,8 @@ uint8_t MMC3::cpuRead(uint16_t addr)
         uint8_t slot = (addr - 0x8000) / 0x2000;
         uint32_t bankNumber = prgBankMap[slot];
         uint32_t romIndex = bankNumber * 0x2000 + (addr & 0x1FFF);
-        std::cout << std::hex
-                  << (int)prg[romIndex] << " "
-                  << (int)prg[romIndex + 1] << "\n";
+
+        std::cout << "\n";
         std::cout << "Last bytes: "
                   << (int)prg[prg.size() - 4] << " "
                   << (int)prg[prg.size() - 3] << "\n";
@@ -176,49 +175,60 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
             }
         }
     }
-    else if (addr == 0x8000)
+    else if (addr >= 0x8000 && addr <= 0x9FFF)
     {
-        bankSelect = data & 0x07;
-        prgMode = (data & 0x40) >> 6;
-        chrMode = (data & 0x80) >> 7;
+        if ((addr & 1) == 0)
+        {
+            // even → bank select
+            bankSelect = data & 0x07;
+            prgMode = (data & 0x40) >> 6;
+            chrMode = (data & 0x80) >> 7;
+        }
+        else
+        {
 
-        updateCHRBanks();
-        updatePRGBanks();
-    }
-    else if (addr == 0x8001)
-    {
-        bankRegister[bankSelect] = data;
-        if (bankSelect <= 5)
-            updateCHRBanks();
+            bankRegister[bankSelect] = data;
 
-        else if (bankSelect > 5)
-            updatePRGBanks();
+            if (bankSelect <= 5)
+                updateCHRBanks();
+            else
+                updatePRGBanks();
+        }
     }
-    else if (addr == 0xA000)
+    else if (addr >= 0xA000 && addr <= 0xBFFF)
     {
-        mirrorHorizontal = !(data & 0x01);
+        if ((addr & 1) == 0)
+        {
+            mirrorHorizontal = !(data & 0x01);
+        }
+        else
+        {
+            wramEnabled = data & 0x80;
+            wramWriteProtected = data & 0x40;
+        }
     }
-    else if (addr == 0xA001)
+    else if (addr >= 0xC000 && addr <= 0xDFFF)
     {
-        wramEnabled = data & 0x80;
-        wramWriteProtected = data & 0x40;
+        if ((addr & 1) == 0)
+        {
+            irqReloadValue = data;
+        }
+        else
+        {
+            irqReloadFlag = true;
+        }
     }
-    else if (addr == 0xC000)
+    else if (addr >= 0xE000)
     {
-        irqReloadValue = data;
-    }
-    else if (addr == 0xC001)
-    {
-        irqReloadFlag = true;
-    }
-    else if (addr == 0xE000)
-    {
-        irqEnabled = false;
-        cpu.clearIRQ();
-    }
-    else if (addr == 0xE001)
-    {
-        irqEnabled = true;
+        if ((addr & 1) == 0)
+        {
+            irqEnabled = false;
+            cpu.clearIRQ();
+        }
+        else
+        {
+            irqEnabled = true;
+        }
     }
 }
 uint8_t MMC3::ppuRead(uint16_t addr)
