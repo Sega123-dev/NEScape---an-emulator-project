@@ -151,11 +151,6 @@ uint8_t MMC3::cpuRead(uint16_t addr)
         uint8_t slot = (addr - 0x8000) / 0x2000;
         uint32_t bankNumber = prgBankMap[slot];
         uint32_t romIndex = bankNumber * 0x2000 + (addr & 0x1FFF);
-
-        std::cout << "\n";
-        std::cout << "Last bytes: "
-                  << (int)prg[prg.size() - 4] << " "
-                  << (int)prg[prg.size() - 3] << "\n";
         if (romIndex >= prg.size())
             return 0xFF;
         return prg[romIndex];
@@ -179,7 +174,7 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
     {
         if ((addr & 1) == 0)
         {
-            // even → bank select
+
             bankSelect = data & 0x07;
             prgMode = (data & 0x40) >> 6;
             chrMode = (data & 0x80) >> 7;

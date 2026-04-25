@@ -869,7 +869,12 @@ void CPU::jmpIndirect()
         highByte = bus.read(finalPtr & 0xFF00);
     }
     uint16_t finalAddress = ((highByte << 8) | lowByte);
-
+    std::cout << std::hex
+              << "PC=" << pc
+              << " OP=" << (int)bus.read(pc)
+              << " OP1=" << (int)bus.read(pc + 1)
+              << " OP2=" << (int)bus.read(pc + 2)
+              << std::endl;
     pc = finalAddress;
 }
 void CPU::jsrAbsolute()
@@ -2085,7 +2090,7 @@ void CPU::clock()
 {
     if (cycles == 0)
     {
-        uint8_t opcode = bus.read(pc);
+        uint8_t opcode = bus.read(pc++);
         Instruction &instr = table[opcode];
 
         if (!instr.execute)
