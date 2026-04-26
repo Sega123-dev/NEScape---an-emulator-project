@@ -53,6 +53,7 @@ uint8_t Bus::read(uint16_t addr)
     }
     else if (addr >= 0x4020)
     {
+        std::cout << "READ " << std::hex << addr << std::endl;
         if (!mapper)
         {
             std::cout << "MAPPER NULL\n";
@@ -61,5 +62,5 @@ uint8_t Bus::read(uint16_t addr)
 
         return mapper->cpuRead(addr);
     }
-    return 0x00;
+    return 0xFF;
 }

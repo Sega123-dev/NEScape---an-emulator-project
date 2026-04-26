@@ -303,18 +303,24 @@ void CPU::nop()
 void CPU::rti()
 {
     sp++;
-    P = bus.read(0x0100 + sp);
 
+    P = bus.read(0x0100 + sp);
     P &= ~0x10;
     P |= 0x20;
 
     sp++;
     uint8_t lowByte = bus.read(0x0100 + sp);
+
     sp++;
     uint8_t highByte = bus.read(0x0100 + sp);
 
-    uint16_t subAddress = (highByte << 8) | lowByte;
-    pc = subAddress;
+    pc = (highByte << 8) | lowByte;
+
+    std::cout << std::hex
+              << "RTI -> PC=" << pc
+              << " P=" << (int)P
+              << " SP=" << (int)sp
+              << std::endl;
 }
 void CPU::bitAbsolute()
 {
@@ -858,24 +864,18 @@ void CPU::jmpAbsolute()
 }
 void CPU::jmpIndirect()
 {
-    uint8_t ptrLowByte = bus.read(pc);
-    uint8_t ptrHighByte = bus.read(pc + 1);
-    uint16_t finalPtr = (ptrHighByte << 8) | ptrLowByte;
+    uint16_t pointer = bus.read(pc) | (bus.read(pc + 1) << 8);
+    pc += 2;
 
-    uint8_t lowByte = bus.read(finalPtr);
-    uint8_t highByte = bus.read(finalPtr + 1);
-    if (ptrLowByte == 0xFF)
-    {
-        highByte = bus.read(finalPtr & 0xFF00);
-    }
-    uint16_t finalAddress = ((highByte << 8) | lowByte);
-    std::cout << std::hex
-              << "PC=" << pc
-              << " OP=" << (int)bus.read(pc)
-              << " OP1=" << (int)bus.read(pc + 1)
-              << " OP2=" << (int)bus.read(pc + 2)
-              << std::endl;
-    pc = finalAddress;
+    uint8_t lowByte = bus.read(pointer);
+
+    uint8_t highByte;
+    if ((pointer & 0x00FF) == 0x00FF)
+        highByte = bus.read(pointer & 0xFF00);
+    else
+        highByte = bus.read(pointer + 1);
+
+    pc = (highByte << 8) | lowByte;
 }
 void CPU::jsrAbsolute()
 {
