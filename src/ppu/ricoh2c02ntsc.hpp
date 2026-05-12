@@ -45,6 +45,7 @@ public:
     int cycle;
 
     bool vblankFlag;
+    bool prevVblank = false;
     bool sprite0Hit;
     bool spriteOverflow;
     uint8_t ppuOpenBus;

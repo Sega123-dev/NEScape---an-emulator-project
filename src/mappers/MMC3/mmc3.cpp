@@ -118,17 +118,26 @@ void MMC3::updateCHRBanks()
 }
 void MMC3::clockIRQ(int currentA12)
 {
-    if (prevA12 == 0 && currentA12 != 0)
+    if (prevA12 == 0 && currentA12 == 1)
     {
         if (irqReloadFlag)
         {
             irqCounter = irqReloadValue;
             irqReloadFlag = false;
         }
+        else if (irqCounter == 0)
+        {
+            irqCounter = irqReloadValue;
+        }
         else
+        {
             irqCounter--;
+        }
+
         if (irqEnabled && irqCounter == 0)
+        {
             cpu.setIRQ();
+        }
     }
 
     prevA12 = currentA12;

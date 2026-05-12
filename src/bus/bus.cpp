@@ -53,7 +53,6 @@ uint8_t Bus::read(uint16_t addr)
     }
     else if (addr >= 0x4020)
     {
-        std::cout << "READ " << std::hex << addr << std::endl;
         if (!mapper)
         {
             std::cout << "MAPPER NULL\n";
@@ -63,4 +62,13 @@ uint8_t Bus::read(uint16_t addr)
         return mapper->cpuRead(addr);
     }
     return 0xFF;
+}
+
+void Bus::reset()
+{
+
+    for (int i = 0; i < 2048; i++)
+    {
+        ram[i] = 0;
+    }
 }

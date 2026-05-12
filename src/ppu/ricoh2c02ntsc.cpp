@@ -325,6 +325,10 @@ void PPU::write2005(uint8_t data)
 }
 void PPU::write2007(uint8_t data)
 {
+    if (!mapper)
+    {
+        std::cout << "NO MAPPER WRITE 2007" << std::endl;
+    }
     uint16_t addr = v & 0x3FFF;
     if (addr < 0x2000)
     {
@@ -404,7 +408,10 @@ void PPU::clock()
 
     if (scanline >= -1 && scanline < 240)
     {
-
+        if (scanline == 0)
+        {
+            vblankFlag = false; // just in case
+        }
         // PRE-RENDER SETS
 
         if (scanline == -1 && cycle == 1)
@@ -547,9 +554,13 @@ void PPU::clock()
     if (scanline == 241 && cycle == 1)
     {
         vblankFlag = true;
-        if (vblankFlag && nmiOutput)
-            cpu.NMI = true;
     }
+
+    if (!prevVblank && vblankFlag && nmiOutput)
+    {
+        cpu.NMI = true;
+    }
+    prevVblank = vblankFlag;
 
     // SPRITE EVALUATION
 

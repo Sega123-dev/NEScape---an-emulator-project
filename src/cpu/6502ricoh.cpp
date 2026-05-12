@@ -197,31 +197,33 @@ CPU::CPU()
 
 void CPU::pushPC()
 {
-    bus.write(0x0100 + sp, (pc >> 8) & 0xFF); // high byte
+    bus.write(0x0100 + sp, pc & 0xFF); // low
     sp--;
-    bus.write(0x0100 + sp, pc & 0xFF); // low byte
+    bus.write(0x0100 + sp, (pc >> 8) & 0xFF); // high
     sp--;
 }
 void CPU::pushStatus(bool breakFlag)
 {
     uint8_t flags = P;
-    flags &= ~0x10;
+
     if (breakFlag)
         flags |= 0x10;
+    else
+        flags &= ~0x10;
+
     flags |= 0x20;
+
     bus.write(0x0100 + sp, flags);
     sp--;
 }
 void CPU::setNZ(uint8_t reg)
 {
-    if ((reg & 0x80) != 0)
+    P = (P & 0x7D);
+
+    if (reg & 0x80)
         P |= 0x80;
-    else
-        P &= ~0x80;
     if (reg == 0)
         P |= 0x02;
-    else
-        P &= ~0x02;
 }
 
 void CPU::setVC(uint8_t V, uint8_t C)
@@ -239,19 +241,22 @@ void CPU::setVC(uint8_t V, uint8_t C)
 
 void CPU::compare(uint8_t reg, uint8_t value)
 {
-    uint8_t result = (int16_t)reg - int16_t(value);
+    uint16_t result = reg - value;
+
     if (reg >= value)
-        P |= 0x01 << 0;
+        P |= 0x01;
     else
-        P &= ~(0x01 << 0);
-    if (reg == value)
-        P |= 0x01 << 1;
+        P &= ~0x01;
+
+    if ((result & 0xFF) == 0)
+        P |= 0x02;
     else
-        P &= ~(0x01 << 1);
+        P &= ~0x02;
+
     if (result & 0x80)
-        P |= 0x01 << 7;
+        P |= 0x80;
     else
-        P &= ~(0x01 << 7);
+        P &= ~0x80;
 }
 void CPU::setIRQ()
 {
@@ -266,10 +271,13 @@ void CPU::clearIRQ()
 void CPU::reset()
 {
 
+    NMI = IRQ = RESET = false;
     A = X = Y = 0;
     P = 0x24;
     sp = 0xFD;
-    cycles = 8;
+    cycles = 0;
+    opState = 0;
+    pc = 0;
 
     uint8_t low = bus.read(0xFFFC);
     uint8_t high = bus.read(0xFFFD);
@@ -278,12 +286,11 @@ void CPU::reset()
 }
 void CPU::brk()
 {
-    pc++;
-
-    bus.write(0x0100 + sp, (pc >> 8) & 0xFF);
+    uint16_t returnAddr = pc + 1;
+    bus.write(0x0100 + sp, (returnAddr >> 8) & 0xFF);
     sp--;
 
-    bus.write(0x0100 + sp, pc & 0xFF);
+    bus.write(0x0100 + sp, returnAddr & 0xFF);
     sp--;
 
     P |= 0x30;
@@ -303,24 +310,19 @@ void CPU::nop()
 void CPU::rti()
 {
     sp++;
+    uint8_t status = bus.read(0x0100 + sp);
 
-    P = bus.read(0x0100 + sp);
+    sp++;
+    uint8_t low = bus.read(0x0100 + sp);
+
+    sp++;
+    uint8_t high = bus.read(0x0100 + sp);
+
+    P = status;
     P &= ~0x10;
     P |= 0x20;
 
-    sp++;
-    uint8_t lowByte = bus.read(0x0100 + sp);
-
-    sp++;
-    uint8_t highByte = bus.read(0x0100 + sp);
-
-    pc = (highByte << 8) | lowByte;
-
-    std::cout << std::hex
-              << "RTI -> PC=" << pc
-              << " P=" << (int)P
-              << " SP=" << (int)sp
-              << std::endl;
+    pc = (high << 8) | low;
 }
 void CPU::bitAbsolute()
 {
@@ -1306,12 +1308,16 @@ void CPU::bmi()
 }
 void CPU::bpl()
 {
-    uint16_t oldPC = pc;
-    if ((oldPC & 0xFF00) != (pc & 0xFF00))
-        cycles++;
     int8_t offset = (int8_t)bus.read(pc++);
+
     if (!(P & 0x80))
-        pc += offset;
+    {
+        uint16_t old = pc;
+        pc = pc + offset;
+
+        if ((old & 0xFF00) != (pc & 0xFF00))
+            cycles++;
+    }
 }
 void CPU::bvc()
 {
@@ -2101,15 +2107,37 @@ void CPU::clock()
 
         (this->*instr.execute)();
         cycles = instr.cycles;
+
+        std::cout << "PC: "
+                  << std::hex << pc
+                  << " OPCODE: "
+                  << (int)opcode
+                  << "\n";
     }
     cycles--;
 
     if (NMI)
     {
+        cycles = 0;
         NMI = false;
         pushPC();
         pushStatus();
         pc = bus.read(0xFFFA);
+        cycles += 7;
+    }
+
+    if (IRQ && !(P & 0x04))
+    {
+        IRQ = false;
+        pushPC();
+        pushStatus();
+
+        P |= 0x04;
+
+        uint8_t lowByte = bus.read(0xFFFE);
+        uint8_t highByte = bus.read(0xFFFF);
+
+        pc = (highByte << 8) | lowByte;
         cycles += 7;
     }
 }

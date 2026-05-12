@@ -58,7 +58,7 @@ uint8_t NROM::cpuRead(uint16_t addr)
 }
 uint8_t NROM::ppuRead(uint16_t addr)
 {
-    uint8_t vramIndex;
+    uint16_t vramIndex;
     uint8_t value;
     if (addr < 0x2000)
     {
@@ -94,7 +94,7 @@ uint8_t NROM::ppuRead(uint16_t addr)
 }
 void NROM::ppuWrite(uint16_t addr, uint8_t data)
 {
-    uint8_t vramIndex;
+    uint16_t vramIndex;
     if (addr < 0x2000 && !chr8kb)
     {
         chr[addr] = data;
@@ -146,11 +146,11 @@ Mirror NROM::getMirror()
 {
     if (mirroring == HORIZONTAL)
     {
-        HORIZONTAL;
+        return Mirror::HORIZONTAL;
     }
     else
     {
-        VERTICAL;
+        return Mirror::VERTICAL;
     }
 }
 void NROM::connectNrom(Bus *b)
