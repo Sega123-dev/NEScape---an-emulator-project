@@ -6,8 +6,6 @@
 #include "../../ppu/ricoh2c02ntsc.hpp"
 #include "../../bus/bus.hpp"
 
-PPU *ppuBus;
-
 NROM::NROM(const std::vector<uint8_t> &prgData, const std::vector<uint8_t> &chrData, const bool &mirrorPortVertical)
 {
     prg = prgData;
@@ -75,14 +73,14 @@ uint8_t NROM::ppuRead(uint16_t addr)
         {
             vramIndex = (mirroredAddr % 0x400) + (mirroredAddr / 0x800) * 0x400;
         }
-        value = ppuBus->vram[vramIndex];
+        value = bus.ppu->vram[vramIndex];
     }
     else if (addr >= 0x3F00 && addr < 0x3FFF)
     {
         uint8_t paletteAddr = addr & 0x1F;
         if (paletteAddr == 0x10 || paletteAddr == 0x14 || paletteAddr == 0x18 || paletteAddr == 0x1C)
             paletteAddr -= 0x10;
-        value = ppuBus->paletteRAM[paletteAddr];
+        value = bus.ppu->paletteRAM[paletteAddr];
     }
     else
     {
@@ -110,7 +108,7 @@ void NROM::ppuWrite(uint16_t addr, uint8_t data)
         {
             vramIndex = (mirroredAddr % 0x400) + (mirroredAddr / 0x800) * 0x400;
         }
-        ppuBus->vram[vramIndex] = data;
+        bus.ppu->vram[vramIndex] = data;
         lastPpuValue = data;
     }
     else if (addr >= 0x3F00 && addr < 0x3FFF)
@@ -118,7 +116,7 @@ void NROM::ppuWrite(uint16_t addr, uint8_t data)
         uint8_t paletteAddr = addr & 0x1F;
         if (paletteAddr == 0x10 || paletteAddr == 0x14 || paletteAddr == 0x18 || paletteAddr == 0x1C)
             paletteAddr -= 0x10;
-        ppuBus->paletteRAM[paletteAddr] = data;
+        bus.ppu->paletteRAM[paletteAddr] = data;
         lastPpuValue = data;
     }
 }

@@ -218,10 +218,11 @@ void CPU::pushStatus(bool breakFlag)
 }
 void CPU::setNZ(uint8_t reg)
 {
-    P = (P & 0x7D);
+    P &= ~(0x80 | 0x02);
 
     if (reg & 0x80)
         P |= 0x80;
+
     if (reg == 0)
         P |= 0x02;
 }
@@ -247,7 +248,6 @@ void CPU::compare(uint8_t reg, uint8_t value)
         P |= 0x01;
     else
         P &= ~0x01;
-
     if ((result & 0xFF) == 0)
         P |= 0x02;
     else
@@ -287,22 +287,25 @@ void CPU::reset()
 void CPU::brk()
 {
     uint16_t returnAddr = pc + 1;
+
     bus.write(0x0100 + sp, (returnAddr >> 8) & 0xFF);
     sp--;
 
     bus.write(0x0100 + sp, returnAddr & 0xFF);
     sp--;
 
-    P |= 0x30;
-    bus.write(0x0100 + sp, P);
+    uint8_t flags = P | 0x30;
+    bus.write(0x0100 + sp, flags);
     sp--;
 
     P |= 0x04;
 
     uint8_t lowByte = bus.read(0xFFFE);
     uint8_t highByte = bus.read(0xFFFF);
+
     pc = (highByte << 8) | lowByte;
 }
+
 void CPU::nop()
 {
     pc++;
@@ -827,21 +830,15 @@ void CPU::pha()
 {
     bus.write(0x0100 + sp, A);
     sp--;
+    cycles++;
 }
 void CPU::pla()
 {
     sp++;
     A = bus.read(0x0100 + sp);
 
-    if (A == 0)
-        P |= 0x02;
-    else
-        P &= ~0x02;
-
-    if (A & 0x80)
-        P |= 0x80;
-    else
-        P &= ~0x80;
+    setNZ(A);
+    cycles++;
 }
 void CPU::php()
 {
@@ -881,31 +878,31 @@ void CPU::jmpIndirect()
 }
 void CPU::jsrAbsolute()
 {
+    uint16_t addr = bus.read(pc) | (bus.read(pc + 1) << 8);
+    pc += 2;
 
-    uint8_t lowByte = bus.read(pc);
-    uint8_t highByte = bus.read(pc + 1);
-    uint16_t subAddress = (highByte << 8) | lowByte;
-
-    uint16_t returnAddress = pc + 2 - 1;
+    uint16_t returnAddress = pc - 1;
 
     bus.write(0x0100 + sp, (returnAddress >> 8) & 0xFF);
     sp--;
-
     bus.write(0x0100 + sp, returnAddress & 0xFF);
     sp--;
 
-    pc = subAddress;
+    pc = addr;
+    std::cout << "Final addr JSR: " << pc << std::endl;
 }
 void CPU::rts()
 {
     sp++;
+
     uint8_t lowByte = bus.read(0x0100 + sp);
     sp++;
+
     uint8_t highByte = bus.read(0x0100 + sp);
 
-    uint16_t subAddress = (highByte << 8) | lowByte;
+    uint16_t addr = (highByte << 8) | lowByte;
 
-    pc = subAddress + 1;
+    pc = addr + 1;
 }
 void CPU::adcImmediate()
 {
@@ -1263,79 +1260,128 @@ void CPU::sbcIndirectIndexed()
 }
 void CPU::bcc()
 {
-    uint16_t oldPC = pc;
     int8_t offset = (int8_t)bus.read(pc++);
-    if ((oldPC & 0xFF00) != (pc & 0xFF00))
-        cycles++;
+
     if (!(P & 0x01))
+    {
+        uint16_t oldPC = pc;
+
         pc += offset;
+        cycles++;
+
+        if ((oldPC & 0xFF00) != (pc & 0xFF00))
+            cycles++;
+    }
 }
+
 void CPU::bcs()
 {
-    uint16_t oldPC = pc;
-    if ((oldPC & 0xFF00) != (pc & 0xFF00))
-        cycles++;
     int8_t offset = (int8_t)bus.read(pc++);
-    if ((P & 0x01))
+
+    if (P & 0x01)
+    {
+        uint16_t oldPC = pc;
+
         pc += offset;
+        cycles++;
+
+        if ((oldPC & 0xFF00) != (pc & 0xFF00))
+            cycles++;
+    }
 }
+
 void CPU::beq()
 {
+    int8_t offset = (int8_t)bus.read(pc++);
     uint16_t oldPC = pc;
+    if (P & 0x02)
+    {
+        pc += offset;
+        cycles++;
+    }
+
     if ((oldPC & 0xFF00) != (pc & 0xFF00))
         cycles++;
-    int8_t offset = (int8_t)bus.read(pc++);
-    if ((P & 0x02))
-        pc += offset;
 }
+
 void CPU::bne()
 {
-    uint16_t oldPC = pc;
-    if ((oldPC & 0xFF00) != (pc & 0xFF00))
-        cycles++;
     int8_t offset = (int8_t)bus.read(pc++);
+
     if (!(P & 0x02))
+    {
+        uint16_t oldPC = pc;
+
         pc += offset;
+        cycles++;
+
+        if ((oldPC & 0xFF00) != (pc & 0xFF00))
+            cycles++;
+    }
 }
+
 void CPU::bmi()
 {
-    uint16_t oldPC = pc;
-    if ((oldPC & 0xFF00) != (pc & 0xFF00))
-        cycles++;
     int8_t offset = (int8_t)bus.read(pc++);
-    if ((P & 0x80))
+
+    if (P & 0x80)
+    {
+        uint16_t oldPC = pc;
+
         pc += offset;
+        cycles++;
+
+        if ((oldPC & 0xFF00) != (pc & 0xFF00))
+            cycles++;
+    }
 }
+
 void CPU::bpl()
 {
     int8_t offset = (int8_t)bus.read(pc++);
 
     if (!(P & 0x80))
     {
-        uint16_t old = pc;
-        pc = pc + offset;
+        uint16_t oldPC = pc;
 
-        if ((old & 0xFF00) != (pc & 0xFF00))
+        pc += offset;
+        cycles++;
+
+        if ((oldPC & 0xFF00) != (pc & 0xFF00))
             cycles++;
     }
 }
+
 void CPU::bvc()
 {
-    uint16_t oldPC = pc;
-    if ((oldPC & 0xFF00) != (pc & 0xFF00))
-        cycles++;
     int8_t offset = (int8_t)bus.read(pc++);
+
     if (!(P & 0x40))
+    {
+        uint16_t oldPC = pc;
+
         pc += offset;
+        cycles++;
+
+        if ((oldPC & 0xFF00) != (pc & 0xFF00))
+            cycles++;
+    }
 }
+
 void CPU::bvs()
 {
-    uint16_t oldPC = pc;
-    if ((oldPC & 0xFF00) != (pc & 0xFF00))
-        cycles++;
     int8_t offset = (int8_t)bus.read(pc++);
-    if ((P & 0x40))
+
+    if (P & 0x40)
+    {
+        uint16_t oldPC = pc;
+
         pc += offset;
+        cycles++;
+
+        if ((oldPC & 0xFF00) != (pc & 0xFF00))
+            cycles++;
+    }
 }
 void CPU::andImmediate()
 {

@@ -86,7 +86,7 @@ public:
 
     // Mapper instance
 
-    Mapper *mapper;
+    Mapper *mapper = nullptr;
     bool horizontalMirroring;
 
     // Write $2000
@@ -146,6 +146,7 @@ public:
     uint16_t lastPPUAddress;
 
     void connectBus(Bus *b);
+    void connectMapper(Mapper *m);
     void drawFrame();
     void initWindow();
 

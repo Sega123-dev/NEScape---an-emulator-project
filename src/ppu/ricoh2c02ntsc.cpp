@@ -10,7 +10,6 @@
 
 // FILES NOT COMPILED,SDL WILL NOT WORK UNTIL YOU COMPILE!!!
 Mapper *mapper;
-
 PPU::PPU(std::vector<uint8_t> &chrROMBuffer)
 {
     chrROM = chrROMBuffer;
@@ -803,6 +802,10 @@ void PPU::drawFrame()
 void PPU::connectBus(Bus *b)
 {
     bus = *b;
+}
+void PPU::connectMapper(Mapper *m)
+{
+    mapper = m;
 }
 ////////////////////////////////////////////
 // CLOCK FUNCTION AROUND 75% ACCURACY GOAL//
