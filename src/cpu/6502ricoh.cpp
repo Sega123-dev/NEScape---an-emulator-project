@@ -337,20 +337,7 @@ void CPU::bitAbsolute()
 
     uint8_t result = A & value;
 
-    if (result == 0)
-        P |= 0x02;
-    else
-        P &= ~0x02;
-
-    if (value & 0x40)
-        P |= 0x40;
-    else
-        P &= ~0x40;
-
-    if (value & 0x80)
-        P |= 0x80;
-    else
-        P &= ~0x80;
+    setNZ(result);
 }
 void CPU::bitZeroPage()
 {
@@ -359,20 +346,7 @@ void CPU::bitZeroPage()
 
     uint8_t result = A & value;
 
-    if (result == 0)
-        P |= 0x02;
-    else
-        P &= ~0x02;
-
-    if (value & 0x40)
-        P |= 0x40;
-    else
-        P &= ~0x40;
-
-    if (value & 0x80)
-        P |= 0x80;
-    else
-        P &= ~0x80;
+    setNZ(result);
 }
 void CPU::incAbsolute()
 {
@@ -2154,11 +2128,7 @@ void CPU::clock()
         (this->*instr.execute)();
         cycles = instr.cycles;
 
-        std::cout << "PC: "
-                  << std::hex << pc
-                  << " OPCODE: "
-                  << (int)opcode
-                  << "\n";
+        std::cout << "IRQ timing: " << ((P & 0x04) != 0) << " Opcode: " << std::hex << static_cast<int>(opcode) << std::endl;
     }
     cycles--;
 
@@ -2175,16 +2145,18 @@ void CPU::clock()
     if (IRQ && !(P & 0x04))
     {
         IRQ = false;
+
         pushPC();
-        pushStatus();
+        pushStatus(false);
 
         P |= 0x04;
 
-        uint8_t lowByte = bus.read(0xFFFE);
-        uint8_t highByte = bus.read(0xFFFF);
+        uint8_t low = bus.read(0xFFFE);
+        uint8_t high = bus.read(0xFFFF);
 
-        pc = (highByte << 8) | lowByte;
-        cycles += 7;
+        pc = (high << 8) | low;
+
+        cycles = 7;
     }
 }
 void CPU::connectBus(Bus *b)
