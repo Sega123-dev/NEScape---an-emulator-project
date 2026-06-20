@@ -237,6 +237,8 @@ public:
     void setIRQ();
     void clearIRQ();
     void pushPC();
+    void push(uint8_t value);
+    uint8_t pull();
     void pushStatus(bool breakFlag = false);
 };
 

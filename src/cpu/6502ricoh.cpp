@@ -202,6 +202,19 @@ void CPU::pushPC()
     bus.write(0x0100 + sp, (pc >> 8) & 0xFF); // high
     sp--;
 }
+
+void CPU::push(uint8_t value)
+{
+    bus.write(0x0100 + sp, value);
+    sp = (sp - 1) & 0xFF;
+}
+
+uint8_t CPU::pull()
+{
+    sp = (sp + 1) & 0xFF;
+    return bus.read(0x0100 + sp);
+}
+
 void CPU::pushStatus(bool breakFlag)
 {
     uint8_t flags = P;
@@ -312,20 +325,16 @@ void CPU::nop()
 }
 void CPU::rti()
 {
-    sp++;
-    uint8_t status = bus.read(0x0100 + sp);
+    uint8_t status = pull();
 
-    sp++;
-    uint8_t low = bus.read(0x0100 + sp);
-
-    sp++;
-    uint8_t high = bus.read(0x0100 + sp);
+    uint8_t low = pull();
+    uint8_t high = pull();
 
     P = status;
     P &= ~0x10;
     P |= 0x20;
 
-    pc = (high << 8) | low;
+    pc = ((high << 8) | low);
 }
 void CPU::bitAbsolute()
 {
@@ -855,28 +864,19 @@ void CPU::jsrAbsolute()
     uint16_t addr = bus.read(pc) | (bus.read(pc + 1) << 8);
     pc += 2;
 
-    uint16_t returnAddress = pc - 1;
+    uint16_t returnAddr = pc - 1;
 
-    bus.write(0x0100 + sp, (returnAddress >> 8) & 0xFF);
-    sp--;
-    bus.write(0x0100 + sp, returnAddress & 0xFF);
-    sp--;
+    push((returnAddr >> 8) & 0xFF);
+    push(returnAddr & 0xFF);
 
     pc = addr;
-    std::cout << "Final addr JSR: " << pc << std::endl;
 }
 void CPU::rts()
 {
-    sp++;
+    uint8_t low = pull();
+    uint8_t high = pull();
 
-    uint8_t lowByte = bus.read(0x0100 + sp);
-    sp++;
-
-    uint8_t highByte = bus.read(0x0100 + sp);
-
-    uint16_t addr = (highByte << 8) | lowByte;
-
-    pc = addr + 1;
+    pc = ((high << 8) | low) + 1;
 }
 void CPU::adcImmediate()
 {
@@ -2127,8 +2127,6 @@ void CPU::clock()
 
         (this->*instr.execute)();
         cycles = instr.cycles;
-
-        std::cout << "IRQ timing: " << ((P & 0x04) != 0) << " Opcode: " << std::hex << static_cast<int>(opcode) << std::endl;
     }
     cycles--;
 
@@ -2158,6 +2156,8 @@ void CPU::clock()
 
         cycles = 7;
     }
+
+    std::cout << "PC: " << pc << " SP: " << (int)sp << std::endl;
 }
 void CPU::connectBus(Bus *b)
 {

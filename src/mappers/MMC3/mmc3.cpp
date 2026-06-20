@@ -58,11 +58,6 @@ MMC3::MMC3(std::vector<uint8_t> &prgData, std::vector<uint8_t> &chrData, const b
 
     wram.resize(0x2000, 0);
     reset();
-    std::cout << "MAP: ";
-    for (int i = 0; i < 4; i++)
-        std::cout << prgBankMap[i] << " ";
-    std::cout << "\n";
-    std::cout << "PRG size: " << prg.size() << std::endl;
 }
 void MMC3::updatePRGBanks()
 {
@@ -90,6 +85,8 @@ void MMC3::updatePRGBanks()
 void MMC3::updateCHRBanks()
 {
     int totalCHR = chr.size() / 0x400;
+    if (totalCHR == 0)
+        return;
     bankRegister[0] &= 0xFE;
     bankRegister[1] &= 0xFE;
 
@@ -97,50 +94,49 @@ void MMC3::updateCHRBanks()
     {
         chrBankMap[0] = bankRegister[0] % totalCHR;
         chrBankMap[1] = (bankRegister[0] + 1) % totalCHR;
+
         chrBankMap[2] = bankRegister[1] % totalCHR;
         chrBankMap[3] = (bankRegister[1] + 1) % totalCHR;
+
         chrBankMap[4] = bankRegister[2] % totalCHR;
         chrBankMap[5] = bankRegister[3] % totalCHR;
         chrBankMap[6] = bankRegister[4] % totalCHR;
         chrBankMap[7] = bankRegister[5] % totalCHR;
     }
-    else if (chrMode == 1)
+    else
     {
+        chrBankMap[4] = bankRegister[0] % totalCHR;
+        chrBankMap[5] = (bankRegister[0] + 1) % totalCHR;
+
+        chrBankMap[6] = bankRegister[1] % totalCHR;
+        chrBankMap[7] = (bankRegister[1] + 1) % totalCHR;
+
         chrBankMap[0] = bankRegister[2] % totalCHR;
         chrBankMap[1] = bankRegister[3] % totalCHR;
         chrBankMap[2] = bankRegister[4] % totalCHR;
         chrBankMap[3] = bankRegister[5] % totalCHR;
-        chrBankMap[4] = bankRegister[0] % totalCHR;
-        chrBankMap[5] = (bankRegister[0] + 1) % totalCHR;
-        chrBankMap[6] = bankRegister[1] % totalCHR;
-        chrBankMap[7] = (bankRegister[1] + 1) % totalCHR;
     }
 }
-void MMC3::clockIRQ(int currentA12)
+void MMC3::clockIRQ(int CurrentA12)
 {
-    if (prevA12 == 0 && currentA12 == 1)
+    return;
+    if (prevA12 == 0 && CurrentA12 == 1)
     {
-        if (irqReloadFlag)
+        if (irqCounter == 0 || irqReloadFlag)
         {
             irqCounter = irqReloadValue;
             irqReloadFlag = false;
-        }
-        else if (irqCounter == 0)
-        {
-            irqCounter = irqReloadValue;
         }
         else
         {
             irqCounter--;
         }
 
-        if (irqEnabled && irqCounter == 0)
-        {
+        if (irqCounter == 0 && irqEnabled)
             cpu.setIRQ();
-        }
     }
 
-    prevA12 = currentA12;
+    prevA12 = CurrentA12;
 }
 uint8_t MMC3::cpuRead(uint16_t addr)
 {
@@ -155,9 +151,13 @@ uint8_t MMC3::cpuRead(uint16_t addr)
             return 0;
         }
     }
+    if (addr < 0x8000)
+        return 0;
     if (addr >= 0x8000)
     {
         uint8_t slot = (addr - 0x8000) / 0x2000;
+        int lastBank = (prg.size() / 0x2000) - 1;
+        int secondLastBank = lastBank - 1;
         uint32_t bankNumber = prgBankMap[slot];
         uint32_t romIndex = bankNumber * 0x2000 + (addr & 0x1FFF);
         if (romIndex >= prg.size())
@@ -165,7 +165,7 @@ uint8_t MMC3::cpuRead(uint16_t addr)
         return prg[romIndex];
     }
 
-    return 0;
+    return 0xFF;
 }
 void MMC3::cpuWrite(uint16_t addr, uint8_t data)
 {
@@ -198,6 +198,7 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
             else
                 updatePRGBanks();
         }
+        return;
     }
     else if (addr >= 0xA000 && addr <= 0xBFFF)
     {
@@ -210,6 +211,7 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
             wramEnabled = data & 0x80;
             wramWriteProtected = data & 0x40;
         }
+        return;
     }
     else if (addr >= 0xC000 && addr <= 0xDFFF)
     {
@@ -237,7 +239,8 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
 }
 uint8_t MMC3::ppuRead(uint16_t addr)
 {
-    addr &= 0x1FFF;
+    uint16_t original = addr;
+    addr &= 0x3FFF;
 
     if (addr >= 0x0000 && addr <= 0x1FFF)
     {
@@ -249,6 +252,7 @@ uint8_t MMC3::ppuRead(uint16_t addr)
         else
             bankSize = 0x800;
         uint32_t romIndex = bankNumber * bankSize + (addr % bankSize);
+        clockIRQ((original & 0x1000) >> 12);
         return chr[romIndex];
     }
     else if (addr >= 0x2000 && addr <= 0x3EFF)
@@ -271,7 +275,7 @@ uint8_t MMC3::ppuRead(uint16_t addr)
             else
                 vramIndex = 1;
         }
-        clockIRQ((addr & 0x1000) >> 12);
+        clockIRQ((original & 0x1000) >> 12);
         return ppu->vram[vramIndex * 0x400 + offset];
     }
     else if (addr >= 0x3F00 && addr <= 0x3FFF)
@@ -321,6 +325,7 @@ void MMC3::ppuWrite(uint16_t addr, uint8_t data)
         {
             vramIndex = (ntIndex % 2 == 0) ? 0 : 1;
         }
+        clockIRQ((addr & 0x1000) >> 12);
         ppu->vram[vramIndex * 0x400 + offset] = data;
     }
 

@@ -31,42 +31,46 @@ void Bus::write(uint16_t addr, uint8_t data)
 }
 uint8_t Bus::read(uint16_t addr)
 {
+    uint8_t data = 0xFF;
+
     if (!mapper)
     {
         std::cerr << "NULL MAPPER ACCESS\n";
         return 0xFF;
     }
+
     if (addr >= 0x0000 && addr <= 0x1FFF)
-        return ram[addr & 0x07FF];
+    {
+        data = ram[addr & 0x07FF];
+    }
     else if (addr >= 0x2000 && addr <= 0x3FFF)
     {
         switch (addr & 0x7)
         {
         case 2:
-            return ppu->read2002();
+            data = ppu->read2002();
             break;
         case 7:
-            return ppu->read2007();
+            data = ppu->read2007();
+            break;
+        default:
+            data = ppu->ppuReadRaw(addr & 0x7);
             break;
         }
-        return ppu->ppuReadRaw(addr & 0x7);
     }
-    else if (addr >= 0x4020)
+    else if (addr < 0x4020)
     {
-        if (!mapper)
-        {
-            std::cout << "MAPPER NULL\n";
-            return 0xFF;
-        }
-
-        return mapper->cpuRead(addr);
+        data = 0; // APU / IO
     }
-    return 0xFF;
+    else
+    {
+        data = mapper->cpuRead(addr);
+    }
+    return data;
 }
 
 void Bus::reset()
 {
-
     for (int i = 0; i < 2048; i++)
     {
         ram[i] = 0;
