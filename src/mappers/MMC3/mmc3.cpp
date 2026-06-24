@@ -155,6 +155,7 @@ uint8_t MMC3::cpuRead(uint16_t addr)
         return 0;
     if (addr >= 0x8000)
     {
+
         uint8_t slot = (addr - 0x8000) / 0x2000;
         int lastBank = (prg.size() / 0x2000) - 1;
         int secondLastBank = lastBank - 1;
@@ -169,6 +170,10 @@ uint8_t MMC3::cpuRead(uint16_t addr)
 }
 void MMC3::cpuWrite(uint16_t addr, uint8_t data)
 {
+    std::cout << "MMC3 WRITE addr="
+              << std::hex << addr
+              << " data=" << (int)data
+              << std::endl;
     if (addr >= 0x6000 && addr <= 0x7FFF)
     {
         if (wramEnabled)

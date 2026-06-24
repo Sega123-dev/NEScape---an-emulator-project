@@ -32,5 +32,6 @@ public:
 
     Mirror getMirror() override;
     void connectNrom(Bus *b);
+    void reset();
     uint16_t mirror(uint16_t addr); // $2000-$2FFF
 };

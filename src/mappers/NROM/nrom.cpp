@@ -6,6 +6,12 @@
 #include "../../ppu/ricoh2c02ntsc.hpp"
 #include "../../bus/bus.hpp"
 
+void NROM::reset()
+{
+    prg16kb = false;
+    chr8kb = false;
+}
+
 NROM::NROM(const std::vector<uint8_t> &prgData, const std::vector<uint8_t> &chrData, const bool &mirrorPortVertical)
 {
     prg = prgData;

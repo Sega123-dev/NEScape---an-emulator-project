@@ -346,7 +346,20 @@ void CPU::bitAbsolute()
 
     uint8_t result = A & value;
 
-    setNZ(result);
+    if (result == 0)
+        P |= 0x02;
+    else
+        P &= ~0x02;
+
+    if (value & 0x80)
+        P |= 0x80;
+    else
+        P &= ~0x80;
+
+    if (value & 0x40)
+        P |= 0x40;
+    else
+        P &= ~0x40;
 }
 void CPU::bitZeroPage()
 {
@@ -2124,7 +2137,7 @@ void CPU::clock()
             std::cerr << "CRASH: opcode " << std::hex << opcode << " has null execute pointer!\n";
             return;
         }
-
+        std::cout << "PC: " << pc << " OP: " << (int)opcode << std::endl;
         (this->*instr.execute)();
         cycles = instr.cycles;
     }
@@ -2156,8 +2169,6 @@ void CPU::clock()
 
         cycles = 7;
     }
-
-    std::cout << "PC: " << pc << " SP: " << (int)sp << std::endl;
 }
 void CPU::connectBus(Bus *b)
 {

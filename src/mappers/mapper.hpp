@@ -21,6 +21,7 @@ public:
     virtual void ppuWrite(uint16_t addr, uint8_t data) = 0;
 
     virtual Mirror getMirror() = 0;
+    virtual void reset() = 0;
 
     ~Mapper() = default;
 };

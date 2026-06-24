@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     PPU ppu;
     std::cout << "ROM DUMP\n";
 
-    Mapper *mapper = dumpROM("roms/smb3.nes");
+    Mapper *mapper = dumpROM("roms/ambushed.nes");
 
     if (!mapper)
         return -1;
@@ -27,8 +27,9 @@ int main(int argc, char *argv[])
     nes.ppu->connectBus(&nes);
     ppu.connectMapper(mapper);
 
-    nes.cpu->reset();
     nes.reset();
+    nes.mapper->reset();
+    nes.cpu->reset();
 
     std::cout << "FRAME\n";
 

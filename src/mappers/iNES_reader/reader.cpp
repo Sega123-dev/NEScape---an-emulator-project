@@ -24,8 +24,22 @@ bool fourScreenMirroring;
 std::vector<uint8_t> PRG_ROM;
 std::vector<uint8_t> CHR_ROM;
 
+void reset()
+{
+    memset(header, 0, 16);
+    prgRomSize = 0;
+    chrRomSize = 0;
+    flag6 = 0;
+    flag7 = 0;
+    mapperID = 0;
+    verticalMirroring = false;
+    SRAM = false;
+    fourScreenMirroring = false;
+}
+
 Mapper *dumpROM(const char *filename)
 {
+    reset();
     std::vector<char> headerBuffer;
     std::vector<char> prgBuffer;
     std::vector<char> chrBuffer;
@@ -46,8 +60,11 @@ Mapper *dumpROM(const char *filename)
     }
 
     for (int i = 0; i < 16; i++)
+    {
         header[i] = static_cast<uint8_t>(headerBuffer[i]);
-
+        std::cout << (int)header[i] << " ";
+    }
+    std::cout << std::endl;
     std::cout << "Header parsed\n";
 
     if (!(header[0] == 0x4E && header[1] == 0x45 && header[2] == 0x53 && header[3] == 0x1A))
@@ -66,7 +83,7 @@ Mapper *dumpROM(const char *filename)
     SRAM = (flag6 & 2);
     fourScreenMirroring = (flag6 & 8);
 
-    mapperID = ((flag7 & 0xF0) | (flag6 >> 4));
+    mapperID = (flag6 >> 4) | (flag7 & 0xF0);
 
     bool trainer = (flag6 & 4) != 0;
     if (trainer)
@@ -76,21 +93,19 @@ Mapper *dumpROM(const char *filename)
     prgBuffer.resize(prgRomSize);
     chrBuffer.resize(chrRomSize);
 
+    if (!rom.read(prgBuffer.data(), prgRomSize))
+    {
+        std::cerr << "Failed PRG read\n";
+        return nullptr;
+    }
+    if (!rom.read(chrBuffer.data(), chrRomSize))
+    {
+        std::cerr << "Failed CHR read\n";
+        return nullptr;
+    }
     rom.read(prgBuffer.data(), prgRomSize);
     PRG_ROM.assign(prgBuffer.begin(), prgBuffer.end());
 
-    std::cout << "PRG first 4 bytes: "
-              << std::hex
-              << (int)PRG_ROM[0] << " "
-              << (int)PRG_ROM[1] << " "
-              << (int)PRG_ROM[2] << " "
-              << (int)PRG_ROM[3] << "\n";
-    std::cout << "PRG last 4 bytes: "
-              << std::hex
-              << (int)PRG_ROM[prgRomSize - 4] << " "
-              << (int)PRG_ROM[prgRomSize - 3] << " "
-              << (int)PRG_ROM[prgRomSize - 2] << " "
-              << (int)PRG_ROM[prgRomSize - 1] << "\n";
     if (chrRomSize == 0)
     {
         CHR_ROM.resize(0x2000, 0);
