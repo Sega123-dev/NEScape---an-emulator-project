@@ -197,9 +197,9 @@ CPU::CPU()
 
 void CPU::pushPC()
 {
-    bus.write(0x0100 + sp, pc & 0xFF); // low
+    bus.write(0x0100 + sp, (pc >> 8) & 0xFF);
     sp--;
-    bus.write(0x0100 + sp, (pc >> 8) & 0xFF); // high
+    bus.write(0x0100 + sp, pc & 0xFF);
     sp--;
 }
 
@@ -211,7 +211,7 @@ void CPU::push(uint8_t value)
 
 uint8_t CPU::pull()
 {
-    sp = (sp + 1) & 0xFF;
+    sp++;
     return bus.read(0x0100 + sp);
 }
 
@@ -219,25 +219,27 @@ void CPU::pushStatus(bool breakFlag)
 {
     uint8_t flags = P;
 
+    flags |= 0x20;
+
     if (breakFlag)
         flags |= 0x10;
     else
         flags &= ~0x10;
 
-    flags |= 0x20;
-
     bus.write(0x0100 + sp, flags);
     sp--;
 }
-void CPU::setNZ(uint8_t reg)
+void CPU::setNZ(uint8_t v)
 {
-    P &= ~(0x80 | 0x02);
-
-    if (reg & 0x80)
-        P |= 0x80;
-
-    if (reg == 0)
+    if (v == 0)
         P |= 0x02;
+    else
+        P &= ~0x02;
+
+    if (v & 0x80)
+        P |= 0x80;
+    else
+        P &= ~0x80;
 }
 
 void CPU::setVC(uint8_t V, uint8_t C)
@@ -261,6 +263,7 @@ void CPU::compare(uint8_t reg, uint8_t value)
         P |= 0x01;
     else
         P &= ~0x01;
+
     if ((result & 0xFF) == 0)
         P |= 0x02;
     else
@@ -368,7 +371,20 @@ void CPU::bitZeroPage()
 
     uint8_t result = A & value;
 
-    setNZ(result);
+    if (result == 0)
+        P |= 0x02;
+    else
+        P &= ~0x02;
+
+    if (value & 0x80)
+        P |= 0x80;
+    else
+        P &= ~0x80;
+
+    if (value & 0x40)
+        P |= 0x40;
+    else
+        P &= ~0x40;
 }
 void CPU::incAbsolute()
 {
@@ -698,44 +714,39 @@ void CPU::ldyAbsoluteX()
 }
 void CPU::staAbsolute()
 {
-    uint8_t lowByte = bus.read(pc);
-    uint8_t highByte = bus.read(pc + 1);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
-    pc += 2;
     bus.write(finalAddress, A);
 }
 void CPU::staAbsoluteX()
 {
-    uint8_t lowByte = bus.read(pc);
-    uint8_t highByte = bus.read(pc + 1);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
-    pc += 2;
     bus.write(finalAddress + X, A);
 }
 void CPU::staAbsoluteY()
 {
-    uint8_t lowByte = bus.read(pc);
-    uint8_t highByte = bus.read(pc + 1);
+    uint8_t lowByte = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
     uint16_t finalAddress = (highByte << 8) | lowByte;
-    pc += 2;
     bus.write(finalAddress + Y, A);
 }
 void CPU::staZeroPage()
 {
-    uint8_t address = bus.read(pc);
-    pc += 1;
+    uint8_t address = bus.read(pc++);
     bus.write(address, A);
 }
 void CPU::staZeroPageX()
 {
-    uint8_t address = bus.read(pc);
-    pc += 1;
+    uint8_t address = bus.read(pc++);
+
     bus.write((address + X) & 0xFF, A);
 }
 void CPU::staIndexedIndirect()
 {
-    uint8_t baseAddress = bus.read(pc);
-    pc += 1;
+    uint8_t baseAddress = bus.read(pc++);
     uint16_t ptr = (baseAddress + X) & 0xFF;
     uint8_t lowByte = bus.read(ptr);
     uint8_t highByte = bus.read((ptr + 1) & 0xFF);
@@ -743,16 +754,20 @@ void CPU::staIndexedIndirect()
 
     bus.write(finalAddress, A);
 }
+
 void CPU::staIndirectIndexed()
 {
-    uint8_t baseAddress = bus.read(pc);
-    pc += 1;
-    uint8_t lowByte = bus.read(baseAddress);
-    uint8_t highByte = bus.read((baseAddress + 1) & 0xFF);
-    uint16_t finalAddress = (highByte << 8) | lowByte;
-    finalAddress += Y;
-    bus.write(finalAddress, A);
+    uint8_t zp = bus.read(pc++);
+
+    uint8_t lo = bus.read(zp);
+    uint8_t hi = bus.read((uint8_t)(zp + 1) & 0xFF);
+
+    uint16_t base = (hi << 8) | lo;
+    uint16_t addr = base + Y;
+
+    bus.write(addr, A);
 }
+
 void CPU::stxAbsolute()
 {
     uint8_t lowByte = bus.read(pc);

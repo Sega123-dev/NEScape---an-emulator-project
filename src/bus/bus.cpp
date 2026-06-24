@@ -24,6 +24,10 @@ void Bus::write(uint16_t addr, uint8_t data)
             break;
         }
     }
+    else if (addr >= 0x4000 && addr <= 0x5FFF)
+    {
+        return;
+    }
     else if (addr >= 0x6000)
     {
         mapper->cpuWrite(addr, data);
@@ -65,8 +69,6 @@ uint8_t Bus::read(uint16_t addr)
     else
     {
         data = mapper->cpuRead(addr);
-        if (addr == 0xFF40)
-            std::cout << "FF40 BYTE = " << std::hex << (int)data << std::endl;
     }
     return data;
 }
