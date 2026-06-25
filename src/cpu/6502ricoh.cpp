@@ -257,19 +257,20 @@ void CPU::setVC(uint8_t V, uint8_t C)
 
 void CPU::compare(uint8_t reg, uint8_t value)
 {
-    uint16_t result = reg - value;
+    uint16_t tmp = reg - value;
+    uint8_t res = tmp & 0xFF;
 
     if (reg >= value)
         P |= 0x01;
     else
         P &= ~0x01;
 
-    if ((result & 0xFF) == 0)
+    if (res == 0)
         P |= 0x02;
     else
         P &= ~0x02;
 
-    if (result & 0x80)
+    if (res & 0x80)
         P |= 0x80;
     else
         P &= ~0x80;
@@ -302,40 +303,36 @@ void CPU::reset()
 }
 void CPU::brk()
 {
-    uint16_t returnAddr = pc + 1;
+    pc++;
+
+    uint16_t returnAddr = pc;
 
     bus.write(0x0100 + sp, (returnAddr >> 8) & 0xFF);
     sp--;
-
     bus.write(0x0100 + sp, returnAddr & 0xFF);
     sp--;
-
     uint8_t flags = P | 0x30;
     bus.write(0x0100 + sp, flags);
     sp--;
 
     P |= 0x04;
 
-    uint8_t lowByte = bus.read(0xFFFE);
-    uint8_t highByte = bus.read(0xFFFF);
-
-    pc = (highByte << 8) | lowByte;
+    uint8_t low = bus.read(0xFFFE);
+    uint8_t high = bus.read(0xFFFF);
+    pc = (high << 8) | low;
 }
 
 void CPU::nop()
 {
-    pc++;
 }
 void CPU::rti()
 {
     uint8_t status = pull();
-
-    uint8_t low = pull();
-    uint8_t high = pull();
-
     P = status;
     P &= ~0x10;
     P |= 0x20;
+    uint8_t low = pull();
+    uint8_t high = pull();
 
     pc = ((high << 8) | low);
 }
@@ -415,20 +412,21 @@ void CPU::incAbsoluteX()
 void CPU::incZeroPage()
 {
     uint8_t address = bus.read(pc++);
-    uint8_t bit8val = bus.read(address);
+    uint8_t bit8val = bus.read(address) & 0xFF;
 
-    bus.write(address, bit8val + 1);
+    bit8val++;
+    bus.write(address, bit8val);
 
-    setNZ(bit8val + 1);
+    setNZ(bit8val);
 }
 void CPU::incZeroPageX()
 {
     uint8_t address = bus.read(pc++);
     uint8_t bit8val = bus.read((address + X) & 0xFF);
+    bit8val++;
+    bus.write((address + X) & 0xFF, bit8val);
 
-    bus.write((address + X) & 0xFF, bit8val + 1);
-
-    setNZ(bit8val + 1);
+    setNZ(bit8val);
 }
 void CPU::inx()
 {
@@ -439,8 +437,8 @@ void CPU::inx()
 void CPU::iny()
 {
     Y++;
-
-    setNZ(Y);
+    P = (Y == 0) ? (P | 0x02) : (P & ~0x02);
+    P = (Y & 0x80) ? (P | 0x80) : (P & ~0x80);
 }
 void CPU::decAbsolute()
 {
@@ -2144,28 +2142,40 @@ void CPU::clock()
 {
     if (cycles == 0)
     {
+        uint16_t oldPC = pc;
+
         uint8_t opcode = bus.read(pc++);
         Instruction &instr = table[opcode];
 
         if (!instr.execute)
         {
-            std::cerr << "CRASH: opcode " << std::hex << opcode << " has null execute pointer!\n";
+            std::cerr << "CRASH: opcode " << std::hex << (int)opcode << "\n";
             return;
         }
-        std::cout << "PC: " << pc << " OP: " << (int)opcode << std::endl;
+
+        std::cout << "OP=" << std::hex << (int)opcode
+                  << " PC: " << oldPC;
+
         (this->*instr.execute)();
+
+        std::cout << " -> " << pc << "\n";
+
         cycles = instr.cycles;
     }
+
     cycles--;
 
     if (NMI)
     {
-        cycles = 0;
         NMI = false;
+
         pushPC();
         pushStatus();
-        pc = bus.read(0xFFFA);
-        cycles += 7;
+
+        uint16_t vec = bus.read(0xFFFA) | (bus.read(0xFFFB) << 8);
+        pc = vec;
+
+        cycles = 7;
     }
 
     if (IRQ && !(P & 0x04))
@@ -2177,10 +2187,8 @@ void CPU::clock()
 
         P |= 0x04;
 
-        uint8_t low = bus.read(0xFFFE);
-        uint8_t high = bus.read(0xFFFF);
-
-        pc = (high << 8) | low;
+        uint16_t vec = bus.read(0xFFFE) | (bus.read(0xFFFF) << 8);
+        pc = vec;
 
         cycles = 7;
     }
