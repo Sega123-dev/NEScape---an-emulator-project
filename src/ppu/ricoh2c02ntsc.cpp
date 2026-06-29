@@ -9,10 +9,9 @@
 #undef main // Important for MinGW/SDL2 on Windows
 
 // FILES NOT COMPILED,SDL WILL NOT WORK UNTIL YOU COMPILE!!!
-Mapper *mapper;
-PPU::PPU(std::vector<uint8_t> &chrROMBuffer)
+
+PPU::PPU()
 {
-    chrROM = chrROMBuffer;
 
     for (int i = 0; i < 2048; i++)
         vram[i] = 0;
@@ -34,7 +33,7 @@ PPU::PPU(std::vector<uint8_t> &chrROMBuffer)
     scanline = -1;
     cycle = 0;
 
-    Mirror mirroring = mapper->getMirror();
+    mirroring = bus.mapper->getMirror();
 }
 
 // HELPERS
@@ -802,10 +801,6 @@ void PPU::drawFrame()
 void PPU::connectBus(Bus *b)
 {
     bus = *b;
-}
-void PPU::connectMapper(Mapper *m)
-{
-    mapper = m;
 }
 ////////////////////////////////////////////
 // CLOCK FUNCTION AROUND 75% ACCURACY GOAL//

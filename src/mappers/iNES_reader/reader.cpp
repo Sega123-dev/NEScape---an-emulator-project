@@ -6,7 +6,7 @@
 #include "../MMC3/mmc3.hpp"
 
 #include "../../bus/bus.hpp"
-
+#include "../../ppu/ricoh2c02ntsc.hpp"
 #include <iostream>
 #include <cstdint>
 #include <fstream>
@@ -129,7 +129,6 @@ Mapper *dumpROM(const char *filename)
     }
 
     Mapper *mapper = chooseMapper();
-
     if (!mapper)
     {
         std::cerr << "Mapper creation failed\n";
@@ -138,6 +137,7 @@ Mapper *dumpROM(const char *filename)
     std::cout << "PRG blocks: " << (int)header[4] << "\n";
     std::cout << "CHR blocks: " << (int)header[5] << "\n";
     std::cout << "Mapper: " << mapperID << "\n";
+
     return mapper;
 }
 

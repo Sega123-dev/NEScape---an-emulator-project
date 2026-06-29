@@ -217,16 +217,14 @@ uint8_t CPU::pull()
 
 void CPU::pushStatus(bool breakFlag)
 {
-    uint8_t flags = P;
-
-    flags |= 0x20;
+    P |= 0x20;
 
     if (breakFlag)
-        flags |= 0x10;
+        P |= 0x10;
     else
-        flags &= ~0x10;
+        P &= ~0x10;
 
-    bus.write(0x0100 + sp, flags);
+    bus.write(0x0100 + sp, P);
     sp--;
 }
 void CPU::setNZ(uint8_t v)
@@ -257,8 +255,8 @@ void CPU::setVC(uint8_t V, uint8_t C)
 
 void CPU::compare(uint8_t reg, uint8_t value)
 {
-    uint16_t tmp = reg - value;
-    uint8_t res = tmp & 0xFF;
+    uint16_t temp = reg - value;
+    uint8_t res = temp & 0xFF;
 
     if (reg >= value)
         P |= 0x01;
@@ -296,9 +294,9 @@ void CPU::reset()
     opState = 0;
     pc = 0;
 
-    uint8_t low = bus.read(0xFFFC);
-    uint8_t high = bus.read(0xFFFD);
-    pc = (high << 8) | low;
+    uint8_t lowByte = bus.read(0xFFFC);
+    uint8_t highByte = bus.read(0xFFFD);
+    pc = (highByte << 8) | lowByte;
     std::cout << "Reset Vector: " << std::hex << pc << "\n";
 }
 void CPU::brk()
@@ -317,13 +315,14 @@ void CPU::brk()
 
     P |= 0x04;
 
-    uint8_t low = bus.read(0xFFFE);
-    uint8_t high = bus.read(0xFFFF);
-    pc = (high << 8) | low;
+    uint8_t lowByte = bus.read(0xFFFE);
+    uint8_t highByte = bus.read(0xFFFF);
+    pc = (highByte << 8) | lowByte;
 }
 
 void CPU::nop()
 {
+    // NO OPERATION
 }
 void CPU::rti()
 {
@@ -331,10 +330,10 @@ void CPU::rti()
     P = status;
     P &= ~0x10;
     P |= 0x20;
-    uint8_t low = pull();
-    uint8_t high = pull();
+    uint8_t lowByte = pull();
+    uint8_t highByte = pull();
 
-    pc = ((high << 8) | low);
+    pc = ((highByte << 8) | lowByte);
 }
 void CPU::bitAbsolute()
 {
@@ -900,9 +899,9 @@ void CPU::jsrAbsolute()
 void CPU::rts()
 {
     uint8_t low = pull();
-    uint8_t high = pull();
+    uint8_t highByte = pull();
 
-    pc = ((high << 8) | low) + 1;
+    pc = ((highByte << 8) | low) + 1;
 }
 void CPU::adcImmediate()
 {
@@ -1791,9 +1790,9 @@ void CPU::aslZeroPageX()
 void CPU::aslAbsolute()
 {
     uint8_t low = bus.read(pc++);
-    uint8_t high = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
-    uint16_t finalAddr = (high << 8) | low;
+    uint16_t finalAddr = (highByte << 8) | low;
     uint8_t value = bus.read(finalAddr);
     if (value & 0x80)
     {
@@ -1810,9 +1809,9 @@ void CPU::aslAbsolute()
 void CPU::aslAbsoluteX()
 {
     uint8_t low = bus.read(pc++);
-    uint8_t high = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
-    uint16_t finalAddr = (high << 8) | low;
+    uint16_t finalAddr = (highByte << 8) | low;
     uint8_t value = bus.read(finalAddr + X);
     if (value & 0x80)
     {
@@ -1885,8 +1884,8 @@ void CPU::lsrZeroPageX()
 void CPU::lsrAbsolute()
 {
     uint8_t low = bus.read(pc++);
-    uint8_t high = bus.read(pc++);
-    uint16_t finalAddr = (high << 8) | low;
+    uint8_t highByte = bus.read(pc++);
+    uint16_t finalAddr = (highByte << 8) | low;
     uint8_t value = bus.read(finalAddr);
 
     if (value & 0x01)
@@ -1907,8 +1906,8 @@ void CPU::lsrAbsolute()
 void CPU::lsrAbsoluteX()
 {
     uint8_t low = bus.read(pc++);
-    uint8_t high = bus.read(pc++);
-    uint16_t finalAddr = (high << 8) | low;
+    uint8_t highByte = bus.read(pc++);
+    uint16_t finalAddr = (highByte << 8) | low;
     uint16_t effAddr = finalAddr + X;
     uint8_t value = bus.read(effAddr);
 
@@ -1984,9 +1983,9 @@ void CPU::rorZeroPageX()
 void CPU::rorAbsolute()
 {
     uint8_t low = bus.read(pc++);
-    uint8_t high = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
-    uint16_t addr = (high << 8) | low;
+    uint16_t addr = (highByte << 8) | low;
     uint8_t value = bus.read(addr);
 
     uint8_t oldC = P & 0x01;
@@ -2007,9 +2006,9 @@ void CPU::rorAbsolute()
 void CPU::rorAbsoluteX()
 {
     uint8_t low = bus.read(pc++);
-    uint8_t high = bus.read(pc++);
+    uint8_t highByte = bus.read(pc++);
 
-    uint16_t addr = (high << 8) | low;
+    uint16_t addr = (highByte << 8) | low;
     uint8_t value = bus.read(addr + X);
 
     uint8_t oldC = P & 0x01;
@@ -2093,8 +2092,8 @@ void CPU::rolZeroPageX()
 void CPU::rolAbsolute()
 {
     uint8_t low = bus.read(pc++);
-    uint8_t high = bus.read(pc++);
-    uint16_t addr = (high << 8) | low;
+    uint8_t highByte = bus.read(pc++);
+    uint16_t addr = (highByte << 8) | low;
     uint8_t value = bus.read(addr);
 
     uint8_t oldCarry = P & 0x01;
@@ -2117,8 +2116,8 @@ void CPU::rolAbsolute()
 void CPU::rolAbsoluteX()
 {
     uint8_t low = bus.read(pc++);
-    uint8_t high = bus.read(pc++);
-    uint16_t addr = ((high << 8) | low) + X;
+    uint8_t highByte = bus.read(pc++);
+    uint16_t addr = ((highByte << 8) | low) + X;
     uint8_t value = bus.read(addr);
 
     uint8_t oldCarry = P & 0x01;

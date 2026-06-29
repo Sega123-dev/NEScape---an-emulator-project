@@ -9,7 +9,6 @@ class Bus;
 class PPU
 {
 public:
-    PPU(std::vector<uint8_t> &chrROMBuffer);
     PPU() = default;
     uint8_t vram[2048];
     uint8_t paletteRAM[32];
@@ -149,6 +148,8 @@ public:
     void connectMapper(Mapper *m);
     void drawFrame();
     void initWindow();
+
+    Mirror mirroring;
 
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
