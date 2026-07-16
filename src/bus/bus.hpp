@@ -31,6 +31,8 @@ public:
     PPU *ppu;
     Mapper *mapper = nullptr;
     uint8_t ram[2048];
+
+    uint8_t openBus = 0x00;
 };
 
 extern Bus bus;

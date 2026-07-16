@@ -9,7 +9,7 @@ class Bus;
 class PPU
 {
 public:
-    PPU() = default;
+    PPU();
     uint8_t vram[2048];
     uint8_t paletteRAM[32];
     uint8_t oam[256];
@@ -145,10 +145,9 @@ public:
     uint16_t lastPPUAddress;
 
     void connectBus(Bus *b);
-    void connectMapper(Mapper *m);
     void drawFrame();
     void initWindow();
-
+    void initMirror();
     Mirror mirroring;
 
     SDL_Window *window = nullptr;

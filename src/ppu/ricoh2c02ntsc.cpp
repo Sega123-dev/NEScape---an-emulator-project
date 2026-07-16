@@ -32,10 +32,11 @@ PPU::PPU()
 
     scanline = -1;
     cycle = 0;
-
+}
+void PPU::initMirror()
+{
     mirroring = bus.mapper->getMirror();
 }
-
 // HELPERS
 
 PPU::Color nesPalette[64] =
@@ -171,7 +172,7 @@ uint8_t PPU ::ppuReadRaw(uint16_t addr)
         uint8_t NTindex = (addr - 0x2000) / 0x400;
         unsigned int offset = (addr - 0x2000) % 0x400;
 
-        if (horizontalMirroring)
+        if (mirroring == HORIZONTAL)
         {
             VRAMindex = (NTindex / 2) * 0x400 + offset;
         }
@@ -212,7 +213,12 @@ void PPU::ppuWriteRaw(uint16_t addr, uint8_t data)
     unsigned int VRAMindex;
 
     if (addr >= 0x0000 && addr <= 0x1FFF)
-        mapper->ppuWrite(addr, data);
+    {
+        bus.mapper->ppuWrite(addr, data);
+        ppuOpenBus = data;
+        return;
+    }
+
     lastPPUAddress = addr;
     if (addr >= 0x2000 && addr <= 0x2FFF)
     {
@@ -245,7 +251,7 @@ void PPU::ppuWriteRaw(uint16_t addr, uint8_t data)
         if (addr == 0x3F1C)
             addr = 0x3F0C;
 
-        paletteRAM[addr - 0x3F00] = data;
+        paletteRAM[addr - 0x3F00] = data & 0x3F;
         lastPPUAddress = addr;
     }
     ppuOpenBus = data;
@@ -317,25 +323,26 @@ void PPU::write2005(uint8_t data)
             ((data & 0x07) << 12);
 
         t = (t & 0xFC1F) |
-            ((data >> 3) & 0x1F) << 5;
+            (((data >> 3) & 0x1F) << 5);
         w = 0;
     }
 }
 void PPU::write2007(uint8_t data)
 {
-    if (!mapper)
+    if (!bus.mapper)
     {
         std::cout << "NO MAPPER WRITE 2007" << std::endl;
     }
     uint16_t addr = v & 0x3FFF;
     if (addr < 0x2000)
     {
-        mapper->ppuWrite(addr, data);
+        bus.mapper->ppuWrite(addr, data);
         lastPPUAddress = addr;
     }
     else if (addr < 0x3F00)
     {
-        mapper->ppuWrite(addr, data);
+        ppuReadRaw(addr & 0x3F00);
+        v += (PPUCTRL & 0x04) ? 32 : 1;
         lastPPUAddress = addr;
     }
     else
@@ -349,7 +356,7 @@ void PPU::write2007(uint8_t data)
             palAddr = 0x08;
         if (palAddr == 0x1C)
             palAddr = 0x0C;
-        paletteRAM[palAddr] = data;
+        paletteRAM[palAddr] = data & 0x3F;
         lastPPUAddress = addr;
     }
     v += (PPUCTRL & 0x04) ? 32 : 1;
@@ -362,7 +369,7 @@ uint8_t PPU::read2007()
     if (addr < 0x3F00)
     {
         returned = ppuDataBuffer;
-        ppuDataBuffer = mapper->ppuRead(addr);
+        ppuDataBuffer = ppuReadRaw(addr);
     }
 
     else if (addr >= 0x3F00)
@@ -379,7 +386,7 @@ uint8_t PPU::read2007()
 
         returned = paletteRAM[palAddr];
 
-        ppuDataBuffer = mapper->ppuRead(addr - 0x1000);
+        ppuDataBuffer = bus.mapper->ppuRead(addr - 0x1000);
     }
     v += (PPUCTRL & 0x04) ? 32 : 1;
     lastPPUAddress = addr;
@@ -556,7 +563,7 @@ void PPU::clock()
 
     if (!prevVblank && vblankFlag && nmiOutput)
     {
-        cpu.NMI = true;
+        bus.cpu->NMI = true;
     }
     prevVblank = vblankFlag;
 

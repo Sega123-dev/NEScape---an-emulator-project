@@ -133,7 +133,7 @@ void MMC3::clockIRQ(int CurrentA12)
         }
 
         if (irqCounter == 0 && irqEnabled)
-            cpu.setIRQ();
+            bus.cpu->setIRQ();
     }
 
     prevA12 = CurrentA12;
@@ -170,10 +170,6 @@ uint8_t MMC3::cpuRead(uint16_t addr)
 }
 void MMC3::cpuWrite(uint16_t addr, uint8_t data)
 {
-    std::cout << "MMC3 WRITE addr="
-              << std::hex << addr
-              << " data=" << (int)data
-              << std::endl;
     if (addr >= 0x6000 && addr <= 0x7FFF)
     {
         if (wramEnabled)
@@ -234,7 +230,7 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
         if ((addr & 1) == 0)
         {
             irqEnabled = false;
-            cpu.clearIRQ();
+            bus.cpu->clearIRQ();
         }
         else
         {
@@ -281,7 +277,7 @@ uint8_t MMC3::ppuRead(uint16_t addr)
                 vramIndex = 1;
         }
         clockIRQ((original & 0x1000) >> 12);
-        return ppu->vram[vramIndex * 0x400 + offset];
+        return bus.ppu->vram[vramIndex * 0x400 + offset];
     }
     else if (addr >= 0x3F00 && addr <= 0x3FFF)
     {
@@ -295,7 +291,7 @@ uint8_t MMC3::ppuRead(uint16_t addr)
         if (palAddr == 0x1C)
             palAddr = 0x0C;
 
-        return ppu->paletteRAM[palAddr];
+        return bus.ppu->paletteRAM[palAddr];
     }
     return 0;
 }
@@ -331,7 +327,7 @@ void MMC3::ppuWrite(uint16_t addr, uint8_t data)
             vramIndex = (ntIndex % 2 == 0) ? 0 : 1;
         }
         clockIRQ((addr & 0x1000) >> 12);
-        ppu->vram[vramIndex * 0x400 + offset] = data;
+        bus.ppu->vram[vramIndex * 0x400 + offset] = data;
     }
 
     else if (addr >= 0x3F00 && addr <= 0x3FFF)
@@ -346,7 +342,7 @@ void MMC3::ppuWrite(uint16_t addr, uint8_t data)
         if (palAddr == 0x1C)
             palAddr = 0x0C;
 
-        ppu->paletteRAM[palAddr] = data;
+        bus.ppu->paletteRAM[palAddr] = data;
     }
 }
 Mirror MMC3::getMirror()

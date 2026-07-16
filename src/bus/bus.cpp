@@ -1,46 +1,47 @@
 #include "bus.hpp"
 void Bus::write(uint16_t addr, uint8_t data)
 {
+    openBus = data;
+
     if (addr >= 0x0000 && addr <= 0x1FFF)
         ram[addr & 0x07FF] = data;
+
     else if (addr >= 0x2000 && addr <= 0x3FFF)
     {
-        switch (addr & 0x7)
+        switch (addr & 0x0007)
         {
-        case 0:
-            ppu->write2000(data);
+        case 0x0:
+            bus.ppu->write2000(data);
             break;
-        case 1:
-            ppu->write2001(data);
+        case 0x1:
+            bus.ppu->write2001(data);
             break;
-        case 5:
-            ppu->write2005(data);
+        case 0x5:
+            bus.ppu->write2005(data);
             break;
-        case 6:
-            ppu->write2006(data);
+        case 0x6:
+            bus.ppu->write2006(data);
             break;
-        case 7:
-            ppu->write2007(data);
+        case 0x7:
+            bus.ppu->write2007(data);
             break;
         }
-    }
-    else if (addr >= 0x4000 && addr <= 0x5FFF)
-    {
         return;
     }
-    else if (addr >= 0x6000)
-    {
-        mapper->cpuWrite(addr, data);
-    }
+    else if (addr >= 0x4000 && addr <= 0x401F)
+        return;
+
+    else if (addr >= 0x4020 && addr <= 0xFFFF)
+        bus.mapper->cpuWrite(addr, data);
 }
 uint8_t Bus::read(uint16_t addr)
 {
-    uint8_t data = 0xFF;
+    uint8_t data = openBus;
 
-    if (!mapper)
+    if (!bus.mapper)
     {
         std::cerr << "NULL MAPPER ACCESS\n";
-        return 0xFF;
+        return openBus;
     }
 
     if (addr >= 0x0000 && addr <= 0x1FFF)
@@ -49,27 +50,25 @@ uint8_t Bus::read(uint16_t addr)
     }
     else if (addr >= 0x2000 && addr <= 0x3FFF)
     {
-        switch (addr & 0x7)
+        switch (addr & 0x0007)
         {
-        case 2:
-            data = ppu->read2002();
+        case 0x2:
+            data = bus.ppu->read2002();
             break;
-        case 7:
-            data = ppu->read2007();
+        case 0x7:
+            data = bus.ppu->read2007();
             break;
         default:
-            data = ppu->ppuReadRaw(addr & 0x7);
+            data = openBus;
             break;
         }
     }
-    else if (addr < 0x4020)
-    {
-        data = 0; // APU / IO
-    }
-    else
-    {
-        data = mapper->cpuRead(addr);
-    }
+    else if (addr >= 0x4000 && addr <= 0x401F)
+        data = openBus;
+    else if (addr >= 0x4020 && addr <= 0xFFFF)
+        data = bus.mapper->cpuRead(addr);
+
+    openBus = data;
     return data;
 }
 

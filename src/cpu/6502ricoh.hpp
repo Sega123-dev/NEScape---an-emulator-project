@@ -241,5 +241,3 @@ public:
     uint8_t pull();
     void pushStatus(bool breakFlag = false);
 };
-
-extern CPU cpu;

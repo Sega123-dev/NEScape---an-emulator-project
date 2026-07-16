@@ -118,7 +118,7 @@ CPU::CPU()
 
     table[0x90] = {"BCC", &CPU::bcc, AddressingMode::RELATIVE, 2};
     table[0xB0] = {"BCS", &CPU::bcs, AddressingMode::RELATIVE, 2};
-    table[0xF0] = {"BEQ", &CPU::beq, AddressingMode::RELATIVE, 2};
+    table[0xF0] = {"BEQ", &CPU::beq, AddressingMode::RELATIVE, 2}; // HERE!
     table[0xD0] = {"BNE", &CPU::bne, AddressingMode::RELATIVE, 2};
     table[0x30] = {"BMI", &CPU::bmi, AddressingMode::RELATIVE, 2};
     table[0x10] = {"BPL", &CPU::bpl, AddressingMode::RELATIVE, 2};
@@ -837,7 +837,7 @@ void CPU::txs()
 void CPU::pha()
 {
     bus.write(0x0100 + sp, A);
-    sp--;
+    sp = (sp - 1) & 0xFF;
     cycles++;
 }
 void CPU::pla()
@@ -851,6 +851,7 @@ void CPU::pla()
 void CPU::php()
 {
     bus.write(0x0100 + sp, P | 0x30);
+    sp = (sp - 1) & 0xFF;
     sp--;
 }
 void CPU::plp()
@@ -874,14 +875,12 @@ void CPU::jmpIndirect()
     uint16_t pointer = bus.read(pc) | (bus.read(pc + 1) << 8);
     pc += 2;
 
-    uint8_t lowByte = bus.read(pointer);
+    uint8_t lowByteAddr = pointer;
 
-    uint8_t highByte;
-    if ((pointer & 0x00FF) == 0x00FF)
-        highByte = bus.read(pointer & 0xFF00);
-    else
-        highByte = bus.read(pointer + 1);
+    uint8_t highByteAddr = (pointer & 0xFF00) | ((pointer + 1) & 0x00FF);
 
+    uint8_t lowByte = bus.read(lowByteAddr);
+    uint8_t highByte = bus.read(highByteAddr);
     pc = (highByte << 8) | lowByte;
 }
 void CPU::jsrAbsolute()
@@ -1297,10 +1296,10 @@ void CPU::beq()
     {
         pc += offset;
         cycles++;
-    }
 
-    if ((oldPC & 0xFF00) != (pc & 0xFF00))
-        cycles++;
+        if ((oldPC & 0xFF00) != (pc & 0xFF00))
+            cycles++;
+    }
 }
 
 void CPU::bne()
