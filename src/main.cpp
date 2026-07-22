@@ -38,6 +38,13 @@ int main(int argc, char *argv[])
 
     while (true)
     {
+        SDL_Event event;
+
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT)
+                return 0;
+        }
         for (int i = 0; i < 29780; i++)
         {
             nes.ppu->clock();

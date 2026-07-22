@@ -287,6 +287,8 @@ void PPU::write2001(uint8_t data)
     emphasizeRed = data & 0x20;
     emphasizeGreen = data & 0x40;
     emphasizeBlue = data & 0x80;
+
+    std::cout << showSprites << " " << showBackground << std::endl;
 }
 uint8_t PPU::read2002()
 {
@@ -402,21 +404,16 @@ void PPU::clock()
 
     if (scanline == -1)
     {
-        if (cycle == 340 && isOddFrame && showBackground)
+        if (cycle == 339 && isOddFrame && showBackground)
         {
             cycle++;
         }
     }
-
     if (scanline == 261 && cycle == 340)
         isOddFrame = !isOddFrame;
 
     if (scanline >= -1 && scanline < 240)
     {
-        if (scanline == 0)
-        {
-            vblankFlag = false; // just in case
-        }
         // PRE-RENDER SETS
 
         if (scanline == -1 && cycle == 1)
@@ -488,15 +485,15 @@ void PPU::clock()
     if (scanline >= 0 && scanline < 240 &&
         cycle >= 1 && cycle <= 256)
     {
-        uint8_t bit = 15 - x;
+        uint8_t bitMux = 0x8000 >> ((cycle - 1) & 0x07);
 
         bgPixel =
-            ((bgShiftHigh >> bit) & 1) << 1 |
-            ((bgShiftLow >> bit) & 1);
+            ((bgShiftHigh & bitMux) ? 2 : 0) |
+            ((bgShiftLow & bitMux) ? 1 : 0);
 
         bgPalette =
-            ((attrShiftHigh >> bit) & 1) << 1 |
-            ((attrShiftLow >> bit) & 1);
+            ((attrShiftHigh & bitMux) ? 2 : 0) |
+            ((attrShiftLow & bitMux) ? 1 : 0);
 
         colorIndex =
             bgPixel ? ((bgPalette << 2) | bgPixel) : 0;
@@ -602,21 +599,18 @@ void PPU::clock()
 
             spritePatternLow[i] = ppuReadRaw(patternTableAddr);
             spritePatternHigh[i] = ppuReadRaw(patternTableAddr + 8);
+
+            spriteShiftLow[i] = spritePatternLow[i];
+            spriteShiftHigh[i] = spritePatternHigh[i];
         }
     }
     // SPRITE RENDERING
-
     if (showSprites && cycle >= 1 && cycle <= 256)
     {
         spritePixel = 0;
-        uint8_t spritePaletteIndex = 0;
-        bool spriteForeground = false;
 
         for (int i = 0; i < spriteCount; i++)
         {
-            spriteShiftLow[i] = spritePatternLow[i];
-            spriteShiftHigh[i] = spritePatternHigh[i];
-            spriteXCounter[i] = secondaryOAM[i * 4 + 3];
             spritePalette[i] = secondaryOAM[i * 4 + 2] & 0x03;
             spritePriority[i] = secondaryOAM[i * 4 + 2] & 0x20;
 
@@ -650,30 +644,6 @@ void PPU::clock()
                 spriteShiftHigh[i] <<= 1;
             }
         }
-
-        // PRIORITY
-
-        if (bgPixel == 0 && spritePixel == 0)
-            colorIndex = 0;
-        else if (bgPixel == 0 && spritePixel > 0)
-            colorIndex = 0x10 | (spritePaletteIndex << 2) | spritePixel;
-        else if (bgPixel > 0 && spritePixel == 0)
-            colorIndex = (bgPalette << 2) | bgPixel;
-        else
-        {
-            if (spriteForeground)
-                colorIndex = 0x10 | (spritePaletteIndex << 2) | spritePixel;
-            else
-                colorIndex = (bgPalette << 2) | bgPixel;
-        }
-
-        // PIXEL EXTRACTING
-
-        uint8_t paletteLookup = paletteRAM[colorIndex & 0x1F];
-
-        Color c = nesPalette[paletteLookup & 0x3F];
-
-        framebuffer[scanline][cycle - 1] = c;
 
         // SPRITE HORIZONTAL FLIP
 
@@ -714,8 +684,8 @@ void PPU::clock()
                     patternTableAddr = patternTableBase + (tileIndex | 0x01) * 16 + (spriteRow - 8);
             }
 
-            spritePatternLow[i] = ppuReadRaw(patternTableAddr + spriteRow);
-            spritePatternHigh[i] = ppuReadRaw(patternTableAddr + spriteRow + 8);
+            spritePatternLow[i] = ppuReadRaw(patternTableAddr);
+            spritePatternHigh[i] = ppuReadRaw(patternTableAddr + 8);
 
             uint8_t pixel = ((spriteShiftHigh[i] >> flipped) & 1) << 1 |
                             ((spriteShiftLow[i] >> flipped) & 1);
@@ -728,15 +698,41 @@ void PPU::clock()
 
         // LEFT EDGE BG
 
-        if (cycle <= 8 && !showLeftBackground && !showLeftSprites)
+        if (cycle <= 8 && !showLeftBackground)
             bgPixel = 0;
-        if (cycle <= 8 && !showLeftBackground && !showLeftSprites)
+        if (cycle <= 8 && !showLeftSprites)
             spritePixel = 0;
 
         if (spriteZeroRendering && spriteZeroPossible && bgPixel != 0 && spritePixel != 0 && cycle >= 1 && cycle <= 255 && !(cycle <= 8 && (!showLeftBackground || !showLeftSprites)))
         {
             sprite0Hit = true; // Sprite 0 hit
         }
+    }
+    // PRIORITY
+
+    if (bgPixel == 0 && spritePixel == 0)
+        colorIndex = 0;
+    else if (bgPixel == 0 && spritePixel > 0)
+        colorIndex = 0x10 | (spritePaletteIndex << 2) | spritePixel;
+    else if (bgPixel > 0 && spritePixel == 0)
+        colorIndex = (bgPalette << 2) | bgPixel;
+    else
+    {
+        if (spriteForeground)
+            colorIndex = 0x10 | (spritePaletteIndex << 2) | spritePixel;
+        else
+            colorIndex = (bgPalette << 2) | bgPixel;
+    }
+
+    // PIXEL EXTRACTING
+    if (scanline >= 0 && scanline < 240 &&
+        cycle >= 1 && cycle <= 256)
+    {
+        uint8_t paletteLookup = paletteRAM[colorIndex & 0x1F];
+
+        Color c = nesPalette[paletteLookup & 0x3F];
+
+        framebuffer[scanline][cycle - 1] = c;
     }
     // CYCLE INCREMENT
 

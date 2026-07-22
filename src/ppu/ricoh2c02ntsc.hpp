@@ -150,6 +150,9 @@ public:
     void initMirror();
     Mirror mirroring;
 
+    uint8_t spritePaletteIndex = 0;
+    bool spriteForeground = false;
+
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
     SDL_Texture *texture = nullptr;

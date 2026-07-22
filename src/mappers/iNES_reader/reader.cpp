@@ -123,6 +123,9 @@ Mapper *dumpROM(const char *filename)
     std::cout << "Reader PRG size: " << PRG_ROM.size() << "\n";
     std::cout << std::hex;
 
+    std::cout << "Reader CHR size: " << CHR_ROM.size() << "\n";
+    std::cout << std::hex;
+
     for (int i = 0; i < 16; i++)
     {
         std::cout << (int)PRG_ROM[PRG_ROM.size() - 16 + i] << " ";

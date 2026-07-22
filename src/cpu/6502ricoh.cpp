@@ -2150,14 +2150,7 @@ void CPU::clock()
             std::cerr << "CRASH: opcode " << std::hex << (int)opcode << "\n";
             return;
         }
-
-        std::cout << "OP=" << std::hex << (int)opcode
-                  << " PC: " << oldPC;
-
         (this->*instr.execute)();
-
-        std::cout << " -> " << pc << "\n";
-
         cycles = instr.cycles;
     }
 
