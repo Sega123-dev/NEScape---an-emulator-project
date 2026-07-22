@@ -225,7 +225,7 @@ void PPU::ppuWriteRaw(uint16_t addr, uint8_t data)
         uint8_t NTindex = (addr - 0x2000) / 0x400;
         unsigned int offset = (addr - 0x2000) % 0x400;
 
-        if (horizontalMirroring)
+        if (mirroring == HORIZONTAL)
         {
             VRAMindex = (NTindex / 2) * 0x400 + offset;
         }
@@ -299,6 +299,7 @@ uint8_t PPU::read2002()
 }
 void PPU::write2006(uint8_t data)
 {
+
     if (w == 0)
     {
         t = (t & 0x00FF) | ((data & 0x3F) << 8);
@@ -331,6 +332,7 @@ void PPU::write2005(uint8_t data)
 }
 void PPU::write2007(uint8_t data)
 {
+
     if (!bus.mapper)
     {
         std::cout << "NO MAPPER WRITE 2007" << std::endl;
@@ -343,8 +345,7 @@ void PPU::write2007(uint8_t data)
     }
     else if (addr < 0x3F00)
     {
-        ppuReadRaw(addr & 0x3F00);
-        v += (PPUCTRL & 0x04) ? 32 : 1;
+        ppuWriteRaw(addr, data);
         lastPPUAddress = addr;
     }
     else
@@ -364,6 +365,7 @@ void PPU::write2007(uint8_t data)
     v += (PPUCTRL & 0x04) ? 32 : 1;
     lastPPUAddress = addr;
 }
+
 uint8_t PPU::read2007()
 {
     uint16_t addr = v & 0x3FFF;
@@ -372,11 +374,13 @@ uint8_t PPU::read2007()
     {
         returned = ppuDataBuffer;
         ppuDataBuffer = ppuReadRaw(addr);
+        v += (PPUCTRL & 0x04) ? 32 : 1;
     }
 
-    else if (addr >= 0x3F00)
+    else
     {
         uint8_t palAddr = (addr - 0x3F00) & 0x1F;
+
         if (palAddr == 0x10)
             palAddr = 0x00;
         if (palAddr == 0x14)
@@ -388,9 +392,10 @@ uint8_t PPU::read2007()
 
         returned = paletteRAM[palAddr];
 
-        ppuDataBuffer = bus.mapper->ppuRead(addr - 0x1000);
+        ppuDataBuffer = ppuReadRaw(addr - 0x1000);
+
+        v += (PPUCTRL & 0x04) ? 32 : 1;
     }
-    v += (PPUCTRL & 0x04) ? 32 : 1;
     lastPPUAddress = addr;
     return returned;
 }
@@ -485,7 +490,7 @@ void PPU::clock()
     if (scanline >= 0 && scanline < 240 &&
         cycle >= 1 && cycle <= 256)
     {
-        uint8_t bitMux = 0x8000 >> ((cycle - 1) & 0x07);
+        uint16_t bitMux = 0x8000 >> x;
 
         bgPixel =
             ((bgShiftHigh & bitMux) ? 2 : 0) |
@@ -494,11 +499,19 @@ void PPU::clock()
         bgPalette =
             ((attrShiftHigh & bitMux) ? 2 : 0) |
             ((attrShiftLow & bitMux) ? 1 : 0);
-
         colorIndex =
             bgPixel ? ((bgPalette << 2) | bgPixel) : 0;
     }
-
+    // BACKGROUND SHIFTING
+    if (renderingEnabled &&
+        ((cycle >= 1 && cycle <= 256) ||
+         (cycle >= 321 && cycle <= 336)))
+    {
+        bgShiftLow <<= 1;
+        bgShiftHigh <<= 1;
+        attrShiftLow <<= 1;
+        attrShiftHigh <<= 1;
+    }
     // SPRITE SHIFTING
 
     if (scanline >= 0 && scanline < 240)
