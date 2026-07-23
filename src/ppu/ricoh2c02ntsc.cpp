@@ -502,16 +502,7 @@ void PPU::clock()
         colorIndex =
             bgPixel ? ((bgPalette << 2) | bgPixel) : 0;
     }
-    // BACKGROUND SHIFTING
-    if (renderingEnabled &&
-        ((cycle >= 1 && cycle <= 256) ||
-         (cycle >= 321 && cycle <= 336)))
-    {
-        bgShiftLow <<= 1;
-        bgShiftHigh <<= 1;
-        attrShiftLow <<= 1;
-        attrShiftHigh <<= 1;
-    }
+
     // SPRITE SHIFTING
 
     if (scanline >= 0 && scanline < 240)
