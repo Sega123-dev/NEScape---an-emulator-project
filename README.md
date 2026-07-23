@@ -38,7 +38,10 @@ The best comparison to this emulator could be the earliest versions of FCEUX or 
 # Early development
 
 In the mid-July 2026,NEScape finally came to life and showed some graphics.It was an early test ROM with basic graphical output that was far from perfect but it was a huge milestone towards development.
-<img width="817" height="779" alt="image" src="https://github.com/user-attachments/assets/9f2165cb-c632-497d-b8e8-85e885e6134b" />
+
+
+<img width="775" height="748" alt="image" src="https://github.com/user-attachments/assets/93118d2e-ed6a-479c-ac6b-163cd8a9323a" />
+
 
 
 # Support and versions
