@@ -35,8 +35,15 @@ The best comparison to this emulator could be the earliest versions of FCEUX or 
 | Cartridge Slot    | Supports 300+ mappers           | Supports main mappers, limited subset(NROM,CNROM,UXROM,MMC1,MMC3) |
 | Controllers       | 2 standard controllers + optional accessories (Zapper, etc.) | Controls mapped to keyboard
 
+# Early development
+
+In the mid-July 2026,NEScape finally came to life and showed some graphics.It was an early test ROM with basic graphical output that was far from perfect but it was a huge milestone towards development.
+<img width="817" height="779" alt="image" src="https://github.com/user-attachments/assets/9f2165cb-c632-497d-b8e8-85e885e6134b" />
+
+
 # Support and versions
 
 - *v0.1* - Unstable and unplayable version.
+- *v0.5* - First MVP.
 
 Emulator currenlty can work only on **Windows** OS.
