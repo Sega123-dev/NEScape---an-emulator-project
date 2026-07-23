@@ -42,6 +42,9 @@ In the mid-July 2026,NEScape finally came to life and showed some graphics.It wa
 
 <img width="775" height="748" alt="image" src="https://github.com/user-attachments/assets/93118d2e-ed6a-479c-ac6b-163cd8a9323a" />
 
+<img width="782" height="753" alt="image" src="https://github.com/user-attachments/assets/735fd7a1-4de0-42ba-86af-f75cb7bd8e6f" />
+
+
 
 
 # Support and versions
