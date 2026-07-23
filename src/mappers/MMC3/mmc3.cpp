@@ -119,7 +119,6 @@ void MMC3::updateCHRBanks()
 }
 void MMC3::clockIRQ(int CurrentA12)
 {
-    return;
     if (prevA12 == 0 && CurrentA12 == 1)
     {
         if (irqCounter == 0 || irqReloadFlag)
@@ -253,6 +252,8 @@ uint8_t MMC3::ppuRead(uint16_t addr)
         else
             bankSize = 0x800;
         uint32_t romIndex = bankNumber * bankSize + (addr % bankSize);
+        if (romIndex >= chr.size())
+            return 0xFF;
         clockIRQ((original & 0x1000) >> 12);
         return chr[romIndex];
     }
