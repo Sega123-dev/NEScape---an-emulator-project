@@ -275,6 +275,7 @@ void PPU::write2000(uint8_t data)
 }
 void PPU::write2001(uint8_t data)
 {
+    std::cout << "WRITE 2001: " << std::hex << (int)data << std::endl;
     PPUMASK = data;
 
     grayscaleMode = data & 0x01; // Set it during the read/write
@@ -287,8 +288,6 @@ void PPU::write2001(uint8_t data)
     emphasizeRed = data & 0x20;
     emphasizeGreen = data & 0x40;
     emphasizeBlue = data & 0x80;
-
-    std::cout << showSprites << " " << showBackground << std::endl;
 }
 uint8_t PPU::read2002()
 {

@@ -278,7 +278,7 @@ uint8_t MMC3::ppuRead(uint16_t addr)
                 vramIndex = 1;
         }
         clockIRQ((original & 0x1000) >> 12);
-        return bus.ppu->vram[vramIndex * 0x400 + offset];
+        return bus.ppu->ppuReadRaw(vramIndex * 0x400 + offset);
     }
     else if (addr >= 0x3F00 && addr <= 0x3FFF)
     {
@@ -317,7 +317,7 @@ void MMC3::ppuWrite(uint16_t addr, uint8_t data)
         addr = addr % 0x1000;
         uint8_t ntIndex = addr / 0x400;
         uint8_t offset = addr % 0x400;
-        uint8_t vramIndex;
+        uint16_t vramIndex;
 
         if (mirrorHorizontal)
         {
@@ -328,7 +328,7 @@ void MMC3::ppuWrite(uint16_t addr, uint8_t data)
             vramIndex = (ntIndex % 2 == 0) ? 0 : 1;
         }
         clockIRQ((addr & 0x1000) >> 12);
-        bus.ppu->vram[vramIndex * 0x400 + offset] = data;
+        bus.ppu->ppuWriteRaw(vramIndex * 0x400 + offset, data);
     }
 
     else if (addr >= 0x3F00 && addr <= 0x3FFF)
