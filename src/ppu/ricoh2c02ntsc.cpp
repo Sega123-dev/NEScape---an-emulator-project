@@ -275,7 +275,6 @@ void PPU::write2000(uint8_t data)
 }
 void PPU::write2001(uint8_t data)
 {
-    std::cout << "WRITE 2001: " << std::hex << (int)data << std::endl;
     PPUMASK = data;
 
     grayscaleMode = data & 0x01; // Set it during the read/write

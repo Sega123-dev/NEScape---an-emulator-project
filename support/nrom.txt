@@ -1,0 +1,23 @@
+NROM mapper - basically no actual mapper,the easiest memory management in NES.
+
+TS - Title Screen
+MM - Main Menu
+
+! - Test ROMs,not actual games.
+* - Homebrew ROMs
+? - Partial support
+/ - not supported
+
+Tested ROMs(Demo/TS/MM):
+
+*Ambushed
+Ballon Fight
+!Blargg CPU stress test
+?Donkey Kong
+?Duck Hunt
+Excitebike
+/Kung Fu
+Mario Bros.
+?Ice Climber
+Metroid
+!Nestest
