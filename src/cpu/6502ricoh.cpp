@@ -2159,12 +2159,11 @@ void CPU::clock()
     if (NMI)
     {
         NMI = false;
-
         pushPC();
         pushStatus();
 
-        uint16_t vec = bus.read(0xFFFA) | (bus.read(0xFFFB) << 8);
-        pc = vec;
+        uint16_t vector = bus.read(0xFFFA) | (bus.read(0xFFFB) << 8);
+        pc = vector;
 
         cycles = 7;
     }

@@ -155,7 +155,15 @@ void MMC1::ppuWrite(uint16_t addr, uint8_t data)
 }
 Mirror MMC1::getMirror()
 {
-    mirroring;
+    // just to bypass the compiler error,not an actual implementation
+    if (mirroring == HORIZONTAL)
+    {
+        return Mirror::HORIZONTAL;
+    }
+    else
+    {
+        return Mirror::VERTICAL;
+    }
 }
 void MMC1::connectMMC1(Bus *b)
 {

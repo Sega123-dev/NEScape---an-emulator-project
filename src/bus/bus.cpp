@@ -68,7 +68,6 @@ uint8_t Bus::read(uint16_t addr)
         data = openBus;
     else if (addr >= 0x4020 && addr <= 0xFFFF)
         data = bus.mapper->cpuRead(addr);
-
     openBus = data;
     return data;
 }

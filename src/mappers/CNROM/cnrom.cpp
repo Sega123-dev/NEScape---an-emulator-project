@@ -61,7 +61,17 @@ void CNROM::ppuWrite(uint16_t addr, uint8_t data)
 {
     std::cout << "No ram writes for CNROM" << std::endl;
 }
-Mirror CNROM::getMirror() {}
+Mirror CNROM::getMirror()
+{
+    if (mirroring == HORIZONTAL)
+    {
+        return Mirror::HORIZONTAL;
+    }
+    else
+    {
+        return Mirror::VERTICAL;
+    }
+}
 
 void CNROM::connectBus(Bus *b)
 {
