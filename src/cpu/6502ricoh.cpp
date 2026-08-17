@@ -560,8 +560,6 @@ void CPU::ldaAbsoluteX()
     uint16_t finalAddressX = finalAddress + X;
     uint8_t value = bus.read(finalAddressX);
 
-    A = value;
-
     if ((finalAddress & 0xFF00) != (finalAddressX & 0xFF00))
         cycles++;
 
@@ -601,6 +599,10 @@ void CPU::ldaIndirectIndexed()
     uint8_t highByte = bus.read((address + 1) & 0xFF);
     uint16_t ptr = (highByte << 8) | lowByte;
     uint16_t finalAddress = ptr + Y;
+
+    if ((ptr & 0xFF00) != (finalAddress & 0xFF00))
+        cycles++;
+
     A = bus.read(finalAddress);
 
     setNZ(A);
@@ -852,7 +854,6 @@ void CPU::php()
 {
     bus.write(0x0100 + sp, P | 0x30);
     sp = (sp - 1) & 0xFF;
-    sp--;
 }
 void CPU::plp()
 {
@@ -877,7 +878,7 @@ void CPU::jmpIndirect()
 
     uint8_t lowByteAddr = pointer;
 
-    uint8_t highByteAddr = (pointer & 0xFF00) | ((pointer + 1) & 0x00FF);
+    uint16_t highByteAddr = (pointer & 0xFF00) | ((pointer + 1) & 0x00FF);
 
     uint8_t lowByte = bus.read(lowByteAddr);
     uint8_t highByte = bus.read(highByteAddr);
@@ -975,10 +976,11 @@ void CPU::adcAbsoluteX()
     uint8_t C, V = 0;
     uint8_t lowByte = bus.read(pc++);
     uint8_t highByte = bus.read(pc++);
-    uint16_t baseAddr = ((highByte << 8) | lowByte) + X;
+    uint16_t baseAddr = ((highByte << 8) | lowByte);
+    uint16_t subAddr = baseAddr + X;
     uint8_t operand = bus.read(baseAddr);
 
-    if ((baseAddr & 0xFF00) != (lowByte << 8))
+    if ((baseAddr & 0xFF00) != (subAddr & 0xFF00))
         cycles++;
 
     uint16_t result = A + operand + (P & 0x01);
@@ -998,10 +1000,11 @@ void CPU::adcAbsoluteY()
     uint8_t C, V = 0;
     uint8_t lowByte = bus.read(pc++);
     uint8_t highByte = bus.read(pc++);
-    uint16_t baseAddr = ((highByte << 8) | lowByte) + Y;
+    uint16_t baseAddr = ((highByte << 8) | lowByte);
+    uint16_t subAddr = baseAddr + Y;
     uint8_t operand = bus.read(baseAddr);
 
-    if ((baseAddr & 0xFF00) != (lowByte << 8))
+    if ((baseAddr & 0xFF00) != (subAddr & 0xFF00))
         cycles++;
 
     uint16_t result = A + operand + (P & 0x01);
@@ -1046,10 +1049,10 @@ void CPU::adcIndirectIndexed()
     uint8_t zp = bus.read(pc++);
     uint8_t lowByte = bus.read(zp);
     uint8_t highByte = bus.read((zp + 1) & 0xFF);
+    uint16_t baseAddr = ((highByte << 8) | lowByte);
+    uint16_t effAddress = baseAddr + Y;
 
-    uint16_t effAddress = ((highByte << 8) | lowByte) + Y;
-
-    if ((effAddress & 0xFF00) != (lowByte << 8))
+    if ((baseAddr & 0xFF00) != (effAddress & 0xFF00))
         cycles++;
 
     uint8_t operand = bus.read(effAddress);
@@ -1444,7 +1447,7 @@ void CPU::andAbsoluteY()
 void CPU::andIndexedIndirect()
 {
     uint8_t zp = bus.read(pc++);
-    uint8_t ptr = bus.read(zp + X) & 0xFF;
+    uint8_t ptr = (zp + X) & 0xFF;
     uint8_t lowByte = bus.read(ptr);
     uint8_t highByte = bus.read((ptr + 1) & 0xFF);
     uint16_t finalAddr = (highByte << 8) | lowByte;
@@ -1530,7 +1533,7 @@ void CPU::eorAbsoluteY()
 void CPU::eorIndexedIndirect()
 {
     uint8_t zp = bus.read(pc++);
-    uint8_t ptr = bus.read(zp + X) & 0xFF;
+    uint8_t ptr = (zp + X) & 0xFF;
     uint8_t lowByte = bus.read(ptr);
     uint8_t highByte = bus.read((ptr + 1) & 0xFF);
     uint16_t finalAddr = (highByte << 8) | lowByte;
@@ -1616,7 +1619,7 @@ void CPU::oraAbsoluteY()
 void CPU::oraIndexedIndirect()
 {
     uint8_t zp = bus.read(pc++);
-    uint8_t ptr = bus.read(zp + X) & 0xFF;
+    uint8_t ptr = (zp + X) & 0xFF;
     uint8_t lowByte = bus.read(ptr);
     uint8_t highByte = bus.read((ptr + 1) & 0xFF);
     uint16_t finalAddr = (highByte << 8) | lowByte;
@@ -1686,7 +1689,7 @@ void CPU::cmpAbsoluteY()
 void CPU::cmpIndexedIndirect()
 {
     uint8_t zp = bus.read(pc++);
-    uint8_t ptr = bus.read(zp + X) & 0xFF;
+    uint8_t ptr = (zp + X) & 0xFF;
     uint8_t lowByte = bus.read(ptr);
     uint8_t highByte = bus.read((ptr + 1) & 0xFF);
 

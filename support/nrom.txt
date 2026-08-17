@@ -13,11 +13,11 @@ Tested ROMs(Demo/TS/MM):
 *Ambushed
 Ballon Fight
 !Blargg CPU stress test
-?Donkey Kong
+Donkey Kong
 ?Duck Hunt
 Excitebike
-/Kung Fu
+?Kung Fu
 Mario Bros.
-?Ice Climber
+Ice Climber
 Metroid
 !Nestest
