@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     PPU ppu;
     std::cout << "ROM DUMP\n";
 
-    Mapper *mapper = dumpROM("roms/contra.nes");
+    Mapper *mapper = dumpROM("roms/smb3.nes");
 
     if (!mapper)
         return -1;
@@ -36,6 +36,9 @@ int main(int argc, char *argv[])
 
     nes.ppu->initWindow(); // Create SDL window
 
+    double cycleCounter = 0.0;
+    const double CYCLES_PER_FRAME = 89342.0 / 3.0;
+
     while (true)
     {
         SDL_Event event;
@@ -45,14 +48,18 @@ int main(int argc, char *argv[])
             if (event.type == SDL_QUIT)
                 return 0;
         }
-        for (int i = 0; i < 29780; i++)
+        while (cycleCounter < CYCLES_PER_FRAME)
         {
             nes.ppu->clock();
             nes.ppu->clock();
             nes.ppu->clock();
             nes.cpu->clock();
+
+            cycleCounter += 1.0;
         }
 
         nes.ppu->drawFrame();
+
+        cycleCounter -= CYCLES_PER_FRAME;
     }
 }

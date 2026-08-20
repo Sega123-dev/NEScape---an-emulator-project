@@ -3,6 +3,8 @@
 #include <iostream>
 #include "../ppu/ricoh2c02ntsc.hpp"
 #include "../bus/bus.hpp"
+#include <cstdlib>
+
 enum AddressingMode
 {
     IMPLIED,
@@ -43,7 +45,7 @@ public:
     uint8_t dataBus, A, X, Y, P, sp, cycles, opState;
     uint16_t pc;
     bool NMI, IRQ, RESET;
-    const uint32_t CPU_CLOCK_SPEED = 5369318 / 3;
+    const double CPU_CLOCK_SPEED = 1.7897725 * 1000000;
 
     void reset();
     void clock();

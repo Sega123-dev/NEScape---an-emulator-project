@@ -16,8 +16,6 @@ public:
 
     uint8_t secondaryOAM[8 * 4];
 
-    static constexpr const uint32_t PPU_CLOCK_SPEED = 5369317;
-
     uint8_t PPUCTRL;
     uint8_t PPUMASK;
     uint8_t PPUSTATUS;
