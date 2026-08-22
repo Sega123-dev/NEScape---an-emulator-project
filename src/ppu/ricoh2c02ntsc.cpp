@@ -288,6 +288,7 @@ void PPU::write2001(uint8_t data)
     emphasizeGreen = data & 0x40;
     emphasizeBlue = data & 0x80;
 }
+
 uint8_t PPU::read2002()
 {
     PPUSTATUS = (vblankFlag << 7) | (sprite0Hit << 6) | (spriteOverflow << 5) | (ppuOpenBus & 0x1F);
@@ -604,12 +605,15 @@ void PPU::clock()
 
             spriteShiftLow[i] = spritePatternLow[i];
             spriteShiftHigh[i] = spritePatternHigh[i];
+
+            spriteXCounter[i] = Xsprite;
         }
     }
     // SPRITE RENDERING
     if (showSprites && cycle >= 1 && cycle <= 256)
     {
         spritePixel = 0;
+        spriteZeroRendering = false;
 
         for (int i = 0; i < spriteCount; i++)
         {
@@ -736,6 +740,7 @@ void PPU::clock()
 
         framebuffer[scanline][cycle - 1] = c;
     }
+
     // CYCLE INCREMENT
 
     cycle++;

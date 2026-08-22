@@ -4,7 +4,6 @@
 #include <vector>
 #include "../../bus/bus.hpp"
 #include "../../ppu/ricoh2c02ntsc.hpp"
-PPU *ppu;
 void MMC3::reset()
 {
     for (int i = 0; i < 8; i++)
@@ -29,9 +28,9 @@ void MMC3::reset()
     irqReloadValue = 0;
     irqEnabled = false;
     irqReloadFlag = false;
-    if (ppu)
+    if (bus.ppu)
     {
-        prevA12 = (ppu->getLastAddress() & 0x1000) >> 12;
+        prevA12 = (bus.ppu->getLastAddress() & 0x1000) >> 12;
     }
     else
     {
@@ -246,12 +245,11 @@ uint8_t MMC3::ppuRead(uint16_t addr)
     {
         uint8_t slot = addr / 0x400;
         uint8_t bankNumber = chrBankMap[slot];
-        int bankSize;
-        if (slot <= 5)
-            bankSize = 0x400;
-        else
-            bankSize = 0x800;
-        uint32_t romIndex = bankNumber * bankSize + (addr % bankSize);
+
+        uint32_t romIndex =
+            bankNumber * 0x400 +
+            (addr & 0x03FF);
+
         if (romIndex >= chr.size())
             return 0xFF;
         clockIRQ((original & 0x1000) >> 12);
