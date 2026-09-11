@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     PPU ppu;
     std::cout << "ROM DUMP\n";
 
-    Mapper *mapper = dumpROM("roms/smb3.nes");
+    Mapper *mapper = dumpROM("roms/ice climber.nes");
 
     if (!mapper)
         return -1;
@@ -36,8 +36,11 @@ int main(int argc, char *argv[])
 
     nes.ppu->initWindow(); // Create SDL window
 
-    double cycleCounter = 0.0;
-    const double CYCLES_PER_FRAME = 89342.0 / 3.0;
+    const double MASTER = 21.477272 * 1'000'000;
+    const double CPU_SPEED = MASTER / 12;
+    const double PPU_SPEED = MASTER / 4;
+
+    const double CYCLES_PER_FRAME = 89342 / (PPU_SPEED / CPU_SPEED);
 
     while (true)
     {
@@ -48,18 +51,16 @@ int main(int argc, char *argv[])
             if (event.type == SDL_QUIT)
                 return 0;
         }
-        while (cycleCounter < CYCLES_PER_FRAME)
+        for (int i = 0; i < CYCLES_PER_FRAME; i++)
         {
+            if (i % 1000 == 1)
+                i++;
             nes.ppu->clock();
             nes.ppu->clock();
             nes.ppu->clock();
             nes.cpu->clock();
-
-            cycleCounter += 1.0;
         }
 
         nes.ppu->drawFrame();
-
-        cycleCounter -= CYCLES_PER_FRAME;
     }
 }

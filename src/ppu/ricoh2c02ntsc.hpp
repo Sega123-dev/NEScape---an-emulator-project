@@ -33,6 +33,9 @@ public:
     void write2000(uint8_t data);
     void write2001(uint8_t data);
     uint8_t read2002();
+    void write2004(uint8_t data);
+    uint8_t read2004();
+    void write2003(uint8_t data);
     void write2005(uint8_t data);
     void write2006(uint8_t data);
     uint8_t read2007();

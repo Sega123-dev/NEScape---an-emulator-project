@@ -7,7 +7,7 @@ Emulator is currently at the development stage so support is pretty limited.
 
 Number of near-perfect accurate ROM files: **2**
 Boot estimate: 65% of all commercial NES games.
-Title screen/Main Menu: **8**
+Title screen/Main Menu: **10**
 
 Number of tested ROMs: **14**
 NROM:**10**

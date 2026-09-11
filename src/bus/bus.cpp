@@ -17,6 +17,12 @@ void Bus::write(uint16_t addr, uint8_t data)
         case 0x1:
             bus.ppu->write2001(data);
             break;
+        case 0x3:
+            bus.ppu->write2003(data);
+            break;
+        case 0x4:
+            bus.ppu->write2004(data);
+            break;
         case 0x5:
             bus.ppu->write2005(data);
             break;

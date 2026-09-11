@@ -19,6 +19,8 @@ PPU::PPU()
         paletteRAM[i] = 0;
     for (int i = 0; i < 256; i++)
         oam[i] = 0;
+    for (int i = 0; i < 32; i++)
+        secondaryOAM[i] = 0;
 
     PPUCTRL = 0;
     PPUMASK = 0;
@@ -296,6 +298,10 @@ uint8_t PPU::read2002()
     w = false;
     return PPUSTATUS;
 }
+void PPU::write2003(uint8_t data)
+{
+    OAMADDR = data;
+}
 void PPU::write2006(uint8_t data)
 {
 
@@ -310,6 +316,15 @@ void PPU::write2006(uint8_t data)
         v = t;
         w = 0;
     }
+}
+void PPU::write2004(uint8_t data)
+{
+    oam[OAMADDR] = data;
+    OAMADDR++;
+}
+uint8_t PPU::read2004()
+{
+    return oam[OAMADDR];
 }
 void PPU::write2005(uint8_t data)
 {
@@ -501,72 +516,6 @@ void PPU::clock()
         colorIndex =
             bgPixel ? ((bgPalette << 2) | bgPixel) : 0;
     }
-
-    // SPRITE SHIFTING
-
-    if (scanline >= 0 && scanline < 240)
-    {
-        if (cycle >= 1 && cycle <= 256)
-        {
-            for (int i = 0; i < spriteCount; i++)
-            {
-                if (spriteXCounter[i] > 0)
-                {
-                    spriteXCounter[i]--;
-                }
-                else
-                {
-                    spriteShiftLow[i] <<= 1;
-                    spriteShiftHigh[i] <<= 1;
-                }
-            }
-        }
-    }
-
-    // OAM PATTERN SCAN
-
-    if (cycle == 65)
-    {
-        memset(secondaryOAM, 0, 32);
-        spriteCount = 0;
-    }
-    if (cycle >= 65 && cycle <= 256)
-    {
-        for (int i = 0; i < 64; i++)
-        {
-            uint8_t Ypos = oam[i * 4 + 0];
-
-            if (scanline >= Ypos && scanline < Ypos + spriteHeight)
-            {
-                spriteAttributes[i] = secondaryOAM[i * 4 + 2];
-                spriteX[i] = secondaryOAM[i * 4 + 3];
-                if (spriteCount >= 8)
-                {
-                    spriteOverflow = true;
-                    break;
-                }
-                for (int j = 0; j < 4; j++)
-                {
-                    secondaryOAM[spriteCount * 4 + j] = oam[i * 4 + j];
-                }
-                spriteCount++;
-            }
-        }
-    }
-
-    // SET VBLANK
-
-    if (scanline == 241 && cycle == 1)
-    {
-        vblankFlag = true;
-    }
-
-    if (!prevVblank && vblankFlag && nmiOutput)
-    {
-        bus.cpu->NMI = true;
-    }
-    prevVblank = vblankFlag;
-
     // SPRITE EVALUATION
 
     if (cycle >= 256 && cycle <= 320)
@@ -609,10 +558,72 @@ void PPU::clock()
             spriteXCounter[i] = Xsprite;
         }
     }
+    // SPRITE SHIFTING
+
+    if (scanline >= 0 && scanline < 240)
+    {
+        if (cycle >= 1 && cycle <= 256)
+        {
+            for (int i = 0; i < spriteCount; i++)
+            {
+                if (spriteXCounter[i] > 0)
+                {
+                    spriteXCounter[i]--;
+                }
+                else
+                {
+                    spriteShiftLow[i] <<= 1;
+                    spriteShiftHigh[i] <<= 1;
+                }
+            }
+        }
+    }
+
+    if (cycle == 65)
+    {
+        memset(secondaryOAM, 0, 32);
+        spriteCount = 0;
+    }
+    if (cycle >= 65 && cycle <= 256)
+    {
+        for (int i = 0; i < 64; i++)
+        {
+            uint8_t Ypos = oam[i * 4 + 0];
+
+            if (scanline >= Ypos && scanline < Ypos + spriteHeight)
+            {
+                spriteAttributes[i] = secondaryOAM[i * 4 + 2];
+                spriteX[spriteCount] = secondaryOAM[i * 4 + 3];
+                if (spriteCount >= 8)
+                {
+                    spriteOverflow = true;
+                    break;
+                }
+                for (int j = 0; j < 4; j++)
+                {
+                    secondaryOAM[spriteCount * 4 + j] = oam[i * 4 + j];
+                }
+                spriteCount++;
+            }
+        }
+    }
+
+    // SET VBLANK
+
+    if (scanline == 241 && cycle == 1)
+    {
+        vblankFlag = true;
+    }
+
+    if (!prevVblank && vblankFlag && nmiOutput)
+    {
+        bus.cpu->NMI = true;
+    }
+    prevVblank = vblankFlag;
+
     // SPRITE RENDERING
     if (showSprites && cycle >= 1 && cycle <= 256)
     {
-        spritePixel = 0;
         spriteZeroRendering = false;
 
         for (int i = 0; i < spriteCount; i++)
@@ -640,21 +651,10 @@ void PPU::clock()
         if (cycle < 9 && !showSpritesLeft)
             spritePixel = 0;
 
-        for (int i = 0; i < spriteCount; i++)
-        {
-            if (spriteXCounter[i] > 0)
-                spriteXCounter[i]--;
-            else
-            {
-                spriteShiftLow[i] <<= 1;
-                spriteShiftHigh[i] <<= 1;
-            }
-        }
-
         // SPRITE HORIZONTAL FLIP
 
         uint8_t flipped;
-        spritePixel = 0;
+
         for (int i = 0; i < spriteCount; i++)
         {
 
@@ -701,7 +701,6 @@ void PPU::clock()
                 break;
             }
         }
-
         // LEFT EDGE BG
 
         if (cycle <= 8 && !showLeftBackground)
