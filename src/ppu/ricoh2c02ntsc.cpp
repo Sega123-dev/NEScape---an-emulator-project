@@ -518,7 +518,7 @@ void PPU::clock()
     }
     // SPRITE EVALUATION
 
-    if (cycle >= 256 && cycle <= 320)
+    if (cycle >= 257 && cycle <= 320)
     {
         for (int i = 0; i < spriteCount; i++)
         {
@@ -558,6 +558,56 @@ void PPU::clock()
             spriteXCounter[i] = Xsprite;
         }
     }
+    // SPRITE HORIZONTAL FLIP
+
+    uint8_t flipped;
+
+    for (int i = 0; i < spriteCount; i++)
+    {
+
+        bool hFlip = spriteAttributes[i] & 0x40;
+        bool vFlip = spriteAttributes[i] & 0x80;
+
+        // Fix later
+
+        /* if (hFlip)
+            flipped = 7 - spriteXCounter[i];
+        else
+            flipped = spriteXCounter[i]; */
+
+        uint8_t spriteY = secondaryOAM[i * 4 + 0];
+        uint8_t spriteRow = scanline - (spriteY + 1);
+        uint8_t tileIndex = secondaryOAM[i * 4 + 1];
+        uint16_t patternTableAddr;
+        uint16_t patternTableBase = (PPUCTRL & 0x08) ? 0x1000 : 0x0000;
+
+        if (vFlip)
+            spriteRow = spriteHeight - 1 - spriteRow;
+
+        if (spriteHeight == 8)
+        {
+            patternTableBase = (PPUCTRL & 0x08) ? 0x1000 : 0x0000;
+            patternTableAddr = patternTableBase + tileIndex * 16 + spriteRow;
+        }
+        else
+        {
+            patternTableBase = (tileIndex & 1) ? 0x1000 : 0x0000;
+
+            if (spriteRow < 8)
+                patternTableAddr = patternTableBase + (tileIndex & 0xFE) * 16 + spriteRow;
+            else
+                patternTableAddr = patternTableBase + (tileIndex | 0x01) * 16 + (spriteRow - 8);
+        }
+
+        uint8_t pixel =
+            ((spriteShiftHigh[i] & 0x80) >> 6) |
+            ((spriteShiftLow[i] & 0x80) >> 7); // changed the pixel calculation,not right entirely but good for sprite fix
+        if (pixel != 0)
+        {
+            spritePixel = pixel;
+            break;
+        }
+    }
     // SPRITE SHIFTING
 
     if (scanline >= 0 && scanline < 240)
@@ -592,8 +642,6 @@ void PPU::clock()
 
             if (scanline >= Ypos && scanline < Ypos + spriteHeight)
             {
-                spriteAttributes[i] = secondaryOAM[i * 4 + 2];
-                spriteX[spriteCount] = secondaryOAM[i * 4 + 3];
                 if (spriteCount >= 8)
                 {
                     spriteOverflow = true;
@@ -603,6 +651,10 @@ void PPU::clock()
                 {
                     secondaryOAM[spriteCount * 4 + j] = oam[i * 4 + j];
                 }
+
+                spriteAttributes[spriteCount] = secondaryOAM[spriteCount * 4 + 2];
+                spriteX[spriteCount] = secondaryOAM[spriteCount * 4 + 3];
+
                 spriteCount++;
             }
         }
@@ -625,6 +677,7 @@ void PPU::clock()
     if (showSprites && cycle >= 1 && cycle <= 256)
     {
         spriteZeroRendering = false;
+        spritePixel = 0;
 
         for (int i = 0; i < spriteCount; i++)
         {
@@ -651,56 +704,6 @@ void PPU::clock()
         if (cycle < 9 && !showSpritesLeft)
             spritePixel = 0;
 
-        // SPRITE HORIZONTAL FLIP
-
-        uint8_t flipped;
-
-        for (int i = 0; i < spriteCount; i++)
-        {
-
-            bool hFlip = spriteAttributes[i] & 0x40;
-            bool vFlip = spriteAttributes[i] & 0x80;
-
-            if (hFlip)
-                flipped = 7 - spriteXCounter[i];
-            else
-                flipped = spriteXCounter[i];
-
-            uint8_t spriteY = secondaryOAM[i * 4 + 0];
-            uint8_t spriteRow = scanline - spriteY;
-            uint8_t tileIndex = secondaryOAM[i * 4 + 1];
-            uint16_t patternTableAddr;
-            uint16_t patternTableBase = (PPUCTRL & 0x08) ? 0x1000 : 0x0000;
-
-            if (vFlip)
-                spriteRow = spriteHeight - 1 - spriteRow;
-
-            if (spriteHeight == 8)
-            {
-                patternTableBase = (PPUCTRL & 0x08) ? 0x1000 : 0x0000;
-                patternTableAddr = patternTableBase + tileIndex * 16 + spriteRow;
-            }
-            else
-            {
-                patternTableBase = (tileIndex & 1) ? 0x1000 : 0x0000;
-
-                if (spriteRow < 8)
-                    patternTableAddr = patternTableBase + (tileIndex & 0xFE) * 16 + spriteRow;
-                else
-                    patternTableAddr = patternTableBase + (tileIndex | 0x01) * 16 + (spriteRow - 8);
-            }
-
-            spritePatternLow[i] = ppuReadRaw(patternTableAddr);
-            spritePatternHigh[i] = ppuReadRaw(patternTableAddr + 8);
-
-            uint8_t pixel = ((spriteShiftHigh[i] >> flipped) & 1) << 1 |
-                            ((spriteShiftLow[i] >> flipped) & 1);
-            if (pixel != 0)
-            {
-                spritePixel = pixel;
-                break;
-            }
-        }
         // LEFT EDGE BG
 
         if (cycle <= 8 && !showLeftBackground)

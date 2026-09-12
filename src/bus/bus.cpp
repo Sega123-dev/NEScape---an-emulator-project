@@ -36,7 +36,21 @@ void Bus::write(uint16_t addr, uint8_t data)
         return;
     }
     else if (addr >= 0x4000 && addr <= 0x401F)
-        return;
+    {
+        if (addr == 0x4014)
+        {
+            uint16_t startAddr = static_cast<uint16_t>(data) << 8;
+
+            for (int i = 0; i < 256; i++)
+            {
+                bus.ppu->oam[i] = bus.read(startAddr + i);
+            }
+        }
+        else
+        {
+            return; // Other I/O
+        }
+    }
 
     else if (addr >= 0x4020 && addr <= 0xFFFF)
         bus.mapper->cpuWrite(addr, data);

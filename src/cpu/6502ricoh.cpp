@@ -281,6 +281,7 @@ void CPU::clearIRQ()
 {
     IRQ = false;
 }
+
 // REST OF THE CPU
 
 void CPU::reset()
