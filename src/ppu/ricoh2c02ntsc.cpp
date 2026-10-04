@@ -34,12 +34,31 @@ PPU::PPU()
 
     scanline = -1;
     cycle = 0;
+
+    for (int i = 0; i < 8; i++)
+    {
+        spriteXCounter[i] = 0;
+        spriteShiftLow[i] = 0;
+        spriteShiftHigh[i] = 0;
+        spritePatternLow[i] = 0;
+        spritePatternHigh[i] = 0;
+        spriteRowBuffer[i] = 0;
+    }
 }
 void PPU::initMirror()
 {
     mirroring = bus.mapper->getMirror();
 }
 // HELPERS
+
+uint8_t reverseBits(uint8_t value)
+{
+    value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);
+    value = ((value & 0xCC) >> 2) | ((value & 0x33) << 2);
+    value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);
+
+    return value;
+}
 
 PPU::Color nesPalette[64] =
     {
@@ -100,14 +119,8 @@ void PPU::loadBackgroundShifters()
 {
     bgShiftLow = (bgShiftLow & 0xFF00) | nextTileLow;
     bgShiftHigh = (bgShiftHigh & 0xFF00) | nextTileHigh;
-
-    uint8_t palette =
-        (nextTileAttr >>
-         (((v >> 4) & 4) | (v & 2))) &
-        0x03;
-
-    attrShiftLow = (attrShiftLow & 0xFF00) | ((palette & 1) ? 0xFF : 0x00);
-    attrShiftHigh = (attrShiftHigh & 0xFF00) | ((palette & 2) ? 0xFF : 0x00);
+    attrShiftLow = (attrShiftLow & 0xFF00) | ((nextTileAttr & 1) ? 0xFF : 0x00);
+    attrShiftHigh = (attrShiftHigh & 0xFF00) | ((nextTileAttr & 2) ? 0xFF : 0x00);
 }
 
 void PPU::incrementX()
@@ -441,32 +454,29 @@ void PPU::clock()
             sprite0Hit = false;
             spriteOverflow = false;
         }
-        if (renderingEnabled &&
-            cycle >= 1 && cycle <= 256)
-        {
-            bgShiftLow <<= 1;
-            bgShiftHigh <<= 1;
-            attrShiftLow <<= 1;
-            attrShiftHigh <<= 1;
-        }
 
         // BACKGROUND SHIFTING
 
         if (renderingEnabled &&
             ((cycle >= 1 && cycle <= 256) || (cycle >= 321 && cycle <= 336)))
         {
+            // shift on 2-256 and 322-337 (not on 1 or 321)
+            if ((cycle >= 2 && cycle <= 256) || (cycle >= 322 && cycle <= 337))
+            {
+                bgShiftLow <<= 1;
+                bgShiftHigh <<= 1;
+                attrShiftLow <<= 1;
+                attrShiftHigh <<= 1;
+            }
             switch (cycle % 8)
             {
             case 1:
+                loadBackgroundShifters();
                 nextTileID = ppuReadRaw(0x2000 | (v & 0x0FFF));
                 break;
 
             case 3:
-                nextTileAttr = ppuReadRaw(
-                    0x23C0 |
-                    (v & 0x0C00) |
-                    ((v >> 4) & 0x38) |
-                    ((v >> 2) & 0x07));
+                nextTileAttr = (ppuReadRaw(0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)) >> (((v >> 4) & 4) | (v & 2))) & 0x03;
                 break;
 
             case 5:
@@ -484,7 +494,6 @@ void PPU::clock()
                 break;
 
             case 0:
-                loadBackgroundShifters();
                 incrementX();
                 break;
             }
@@ -516,12 +525,14 @@ void PPU::clock()
         colorIndex =
             bgPixel ? ((bgPalette << 2) | bgPixel) : 0;
     }
+
     // SPRITE EVALUATION
 
     if (cycle >= 257 && cycle <= 320)
     {
         for (int i = 0; i < spriteCount; i++)
         {
+
             uint8_t spriteY = secondaryOAM[i * 4 + 0];
             uint8_t Xsprite = secondaryOAM[i * 4 + 3];
             uint8_t spriteRow = scanline - spriteY;
@@ -548,94 +559,39 @@ void PPU::clock()
                 else
                     patternTableAddr = patternTableBase + (tileIndex | 0x01) * 16 + (spriteRow - 8);
             }
+            // SPRITE FETCH
+            spritePatternLow[i] =
+                ppuReadRaw(patternTableAddr);
 
-            spritePatternLow[i] = ppuReadRaw(patternTableAddr);
-            spritePatternHigh[i] = ppuReadRaw(patternTableAddr + 8);
+            spritePatternHigh[i] =
+                ppuReadRaw(patternTableAddr + 8);
 
-            spriteShiftLow[i] = spritePatternLow[i];
-            spriteShiftHigh[i] = spritePatternHigh[i];
-
-            spriteXCounter[i] = Xsprite;
-        }
-    }
-    // SPRITE HORIZONTAL FLIP
-
-    uint8_t flipped;
-
-    for (int i = 0; i < spriteCount; i++)
-    {
-
-        bool hFlip = spriteAttributes[i] & 0x40;
-        bool vFlip = spriteAttributes[i] & 0x80;
-
-        // Fix later
-
-        /* if (hFlip)
-            flipped = 7 - spriteXCounter[i];
-        else
-            flipped = spriteXCounter[i]; */
-
-        uint8_t spriteY = secondaryOAM[i * 4 + 0];
-        uint8_t spriteRow = scanline - (spriteY + 1);
-        uint8_t tileIndex = secondaryOAM[i * 4 + 1];
-        uint16_t patternTableAddr;
-        uint16_t patternTableBase = (PPUCTRL & 0x08) ? 0x1000 : 0x0000;
-
-        if (vFlip)
-            spriteRow = spriteHeight - 1 - spriteRow;
-
-        if (spriteHeight == 8)
-        {
-            patternTableBase = (PPUCTRL & 0x08) ? 0x1000 : 0x0000;
-            patternTableAddr = patternTableBase + tileIndex * 16 + spriteRow;
-        }
-        else
-        {
-            patternTableBase = (tileIndex & 1) ? 0x1000 : 0x0000;
-
-            if (spriteRow < 8)
-                patternTableAddr = patternTableBase + (tileIndex & 0xFE) * 16 + spriteRow;
-            else
-                patternTableAddr = patternTableBase + (tileIndex | 0x01) * 16 + (spriteRow - 8);
-        }
-
-        uint8_t pixel =
-            ((spriteShiftHigh[i] & 0x80) >> 6) |
-            ((spriteShiftLow[i] & 0x80) >> 7); // changed the pixel calculation,not right entirely but good for sprite fix
-        if (pixel != 0)
-        {
-            spritePixel = pixel;
-            break;
-        }
-    }
-    // SPRITE SHIFTING
-
-    if (scanline >= 0 && scanline < 240)
-    {
-        if (cycle >= 1 && cycle <= 256)
-        {
-            for (int i = 0; i < spriteCount; i++)
+            if (spriteAttributes[i] & 0x40)
             {
-                if (spriteXCounter[i] > 0)
-                {
-                    spriteXCounter[i]--;
-                }
-                else
-                {
-                    spriteShiftLow[i] <<= 1;
-                    spriteShiftHigh[i] <<= 1;
-                }
+                spritePatternLow[i] =
+                    reverseBits(spritePatternLow[i]);
+
+                spritePatternHigh[i] =
+                    reverseBits(spritePatternHigh[i]);
             }
+
+            spriteShiftLow[i] =
+                spritePatternLow[i];
+
+            spriteShiftHigh[i] =
+                spritePatternHigh[i];
+
+            spriteXCounter[i] =
+                Xsprite;
         }
     }
-
-    if (cycle == 65)
+    if (cycle == 257)
     {
         memset(secondaryOAM, 0, 32);
         spriteCount = 0;
-    }
-    if (cycle >= 65 && cycle <= 256)
-    {
+        spriteOverflow = false;
+        spriteZeroPossible = false;
+
         for (int i = 0; i < 64; i++)
         {
             uint8_t Ypos = oam[i * 4 + 0];
@@ -647,10 +603,10 @@ void PPU::clock()
                     spriteOverflow = true;
                     break;
                 }
+                if (i == 0)
+                    spriteZeroPossible = true;
                 for (int j = 0; j < 4; j++)
-                {
                     secondaryOAM[spriteCount * 4 + j] = oam[i * 4 + j];
-                }
 
                 spriteAttributes[spriteCount] = secondaryOAM[spriteCount * 4 + 2];
                 spriteX[spriteCount] = secondaryOAM[spriteCount * 4 + 3];
@@ -659,7 +615,6 @@ void PPU::clock()
             }
         }
     }
-
     // SET VBLANK
 
     if (scanline == 241 && cycle == 1)
@@ -674,47 +629,65 @@ void PPU::clock()
     prevVblank = vblankFlag;
 
     // SPRITE RENDERING
-    if (showSprites && cycle >= 1 && cycle <= 256)
+    if (cycle >= 1 && cycle <= 256)
     {
         spriteZeroRendering = false;
         spritePixel = 0;
 
-        for (int i = 0; i < spriteCount; i++)
+        if (showSprites)
         {
-            spritePalette[i] = secondaryOAM[i * 4 + 2] & 0x03;
-            spritePriority[i] = secondaryOAM[i * 4 + 2] & 0x20;
-
-            if (spriteXCounter[i] == 0)
+            for (int i = 0; i < spriteCount; i++)
             {
-                uint8_t pixel = ((spriteShiftHigh[i] & 0x80) >> 6) |
-                                ((spriteShiftLow[i] & 0x80) >> 7);
+                spritePalette[i] = spriteAttributes[i] & 0x03;
+                spritePriority[i] = spriteAttributes[i] & 0x20;
 
-                if (pixel != 0)
+                if (spriteXCounter[i] == 0)
                 {
-                    spritePixel = pixel;
-                    spritePaletteIndex = spritePalette[i];
-                    spriteForeground = !spritePriority[i];
+                    uint8_t pixel = ((spriteShiftHigh[i] & 0x80) >> 6) |
+                                    ((spriteShiftLow[i] & 0x80) >> 7);
 
-                    if (i == 0)
-                        spriteZeroRendering = true;
-                    break;
+                    if (pixel != 0)
+                    {
+                        spritePixel = pixel;
+                        spritePaletteIndex = spritePalette[i];
+                        spriteForeground = !spritePriority[i];
+
+                        if (i == 0)
+                            spriteZeroRendering = true;
+                        break;
+                    }
                 }
             }
         }
-        if (cycle < 9 && !showSpritesLeft)
-            spritePixel = 0;
 
-        // LEFT EDGE BG
-
-        if (cycle <= 8 && !showLeftBackground)
-            bgPixel = 0;
-        if (cycle <= 8 && !showLeftSprites)
-            spritePixel = 0;
-
-        if (spriteZeroRendering && spriteZeroPossible && bgPixel != 0 && spritePixel != 0 && cycle >= 1 && cycle <= 255 && !(cycle <= 8 && (!showLeftBackground || !showLeftSprites)))
+        // SPRITE SHIFTING
+        if (scanline >= 0 && scanline < 240)
         {
-            sprite0Hit = true; // Sprite 0 hit
+            for (int i = 0; i < spriteCount; i++)
+            {
+                if (spriteXCounter[i] > 0)
+                    spriteXCounter[i]--;
+                else
+                {
+                    spriteShiftLow[i] <<= 1;
+                    spriteShiftHigh[i] <<= 1;
+                }
+            }
         }
+    }
+    if (cycle < 9 && !showLeftSprites)
+        spritePixel = 0;
+
+    // LEFT EDGE BG
+
+    if (cycle <= 8 && !showLeftBackground)
+        bgPixel = 0;
+    if (cycle <= 8 && !showLeftSprites)
+        spritePixel = 0;
+
+    if (spriteZeroRendering && spriteZeroPossible && bgPixel != 0 && spritePixel != 0 && cycle >= 1 && cycle <= 255 && !(cycle <= 8 && (!showLeftBackground || !showLeftSprites)))
+    {
+        sprite0Hit = true; // Sprite 0 hit
     }
     // PRIORITY
 
@@ -744,7 +717,6 @@ void PPU::clock()
     }
 
     // CYCLE INCREMENT
-
     cycle++;
     if (cycle > 340)
     {

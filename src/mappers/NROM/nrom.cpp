@@ -62,69 +62,13 @@ uint8_t NROM::cpuRead(uint16_t addr)
 }
 uint8_t NROM::ppuRead(uint16_t addr)
 {
-    uint16_t vramIndex;
-    uint8_t value;
-    if (addr < 0x2000)
-    {
-        return chr[addr];
-    }
-    else if (addr >= 0x2000 && addr < 0x3F00)
-    {
-        uint16_t mirroredAddr = mirror(addr);
-        if (mirroring == VERTICAL)
-        {
-            vramIndex = mirroredAddr % 0x800;
-        }
-        else if (mirroring == HORIZONTAL)
-        {
-            vramIndex = (mirroredAddr % 0x400) + (mirroredAddr / 0x800) * 0x400;
-        }
-        value = bus.ppu->vram[vramIndex];
-    }
-    else if (addr >= 0x3F00 && addr < 0x3FFF)
-    {
-        uint8_t paletteAddr = addr & 0x1F;
-        if (paletteAddr == 0x10 || paletteAddr == 0x14 || paletteAddr == 0x18 || paletteAddr == 0x1C)
-            paletteAddr -= 0x10;
-        value = bus.ppu->paletteRAM[paletteAddr];
-    }
-    else
-    {
-        value = lastPpuValue;
-    }
-
-    lastPpuValue = value;
-    return value;
+    return addr < 0x2000 ? chr[addr] : 0;
 }
+
 void NROM::ppuWrite(uint16_t addr, uint8_t data)
 {
-    uint16_t vramIndex;
-    if (addr < 0x2000 && !chr8kb)
-    {
+    if (addr < 0x2000 && !chr8kb) // only writable if it's CHR-RAM
         chr[addr] = data;
-    }
-    else if (addr >= 0x2000 && addr < 0x3F00)
-    {
-        uint16_t mirroredAddr = mirror(addr);
-        if (mirroring == VERTICAL)
-        {
-            vramIndex = mirroredAddr % 0x800;
-        }
-        else if (mirroring == HORIZONTAL)
-        {
-            vramIndex = (mirroredAddr % 0x400) + (mirroredAddr / 0x800) * 0x400;
-        }
-        bus.ppu->vram[vramIndex] = data;
-        lastPpuValue = data;
-    }
-    else if (addr >= 0x3F00 && addr < 0x3FFF)
-    {
-        uint8_t paletteAddr = addr & 0x1F;
-        if (paletteAddr == 0x10 || paletteAddr == 0x14 || paletteAddr == 0x18 || paletteAddr == 0x1C)
-            paletteAddr -= 0x10;
-        bus.ppu->paletteRAM[paletteAddr] = data;
-        lastPpuValue = data;
-    }
 }
 void NROM::cpuWrite(uint16_t addr, uint8_t data)
 {
@@ -132,7 +76,8 @@ void NROM::cpuWrite(uint16_t addr, uint8_t data)
         prgRam[addr - 0x6000] = data;
     lastCpuValue = data;
 }
-uint16_t NROM::mirror(uint16_t addr)
+// TEMP FIX
+/* uint16_t NROM::mirror(uint16_t addr)
 {
     addr = addr & 0x0FFF;
     if (mirroring == VERTICAL)
@@ -145,7 +90,7 @@ uint16_t NROM::mirror(uint16_t addr)
     }
     return 0;
 }
-
+*/
 Mirror NROM::getMirror()
 {
     if (mirroring == HORIZONTAL)

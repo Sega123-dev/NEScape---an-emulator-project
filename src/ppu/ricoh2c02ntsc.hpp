@@ -154,6 +154,8 @@ public:
     uint8_t spritePaletteIndex = 0;
     bool spriteForeground = false;
 
+    uint8_t oamIndex;
+
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
     SDL_Texture *texture = nullptr;
