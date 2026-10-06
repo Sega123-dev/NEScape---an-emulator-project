@@ -43,8 +43,10 @@ void Bus::write(uint16_t addr, uint8_t data)
 
             for (int i = 0; i < 256; i++)
             {
-                bus.ppu->oam[i] = bus.read(startAddr + i);
+                bus.ppu->oam[(bus.ppu->OAMADDR + i) & 0xFF] = bus.read(startAddr + i);
             }
+
+            bus.cpu->cycles += 513; // DMA STALL
         }
         else
         {
@@ -78,6 +80,9 @@ uint8_t Bus::read(uint16_t addr)
             break;
         case 0x7:
             data = bus.ppu->read2007();
+            break;
+        case 0x4:
+            data = bus.ppu->read2004();
             break;
         default:
             data = openBus;

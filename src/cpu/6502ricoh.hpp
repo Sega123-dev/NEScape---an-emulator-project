@@ -42,7 +42,8 @@ class CPU
 public:
     Instruction table[256];
     CPU();
-    uint8_t dataBus, A, X, Y, P, sp, cycles, opState;
+    uint8_t dataBus, A, X, Y, P, sp, opState;
+    int cycles;
     uint16_t pc;
     bool NMI, IRQ, RESET;
     const double CPU_CLOCK_SPEED = 1.7897725 * 1000000;
@@ -232,6 +233,9 @@ public:
     void rolZeroPageX();
     void rolAbsolute();
     void rolAbsoluteX();
+
+    void sed();
+    void cld();
 
     void setNZ(uint8_t reg);
     void setVC(uint8_t V, uint8_t C);

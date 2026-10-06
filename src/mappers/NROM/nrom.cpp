@@ -9,7 +9,7 @@
 void NROM::reset()
 {
     prg16kb = false;
-    chr8kb = false;
+    chr8kb = true;
 }
 
 NROM::NROM(const std::vector<uint8_t> &prgData, const std::vector<uint8_t> &chrData, const bool &mirrorPortVertical)

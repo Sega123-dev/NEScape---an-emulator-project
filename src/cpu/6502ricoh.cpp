@@ -192,6 +192,9 @@ CPU::CPU()
     table[0x36] = {"ROL", &CPU::rolZeroPageX, AddressingMode::ZERO_PAGE_X, 6};
     table[0x2E] = {"ROL", &CPU::rolAbsolute, AddressingMode::ABSOLUTE, 6};
     table[0x3E] = {"ROL", &CPU::rolAbsoluteX, AddressingMode::ABSOLUTE_X, 7};
+
+    table[0xF8] = {"SED", &CPU::sed, AddressingMode::IMPLIED, 2};
+    table[0xD8] = {"CLD", &CPU::cld, AddressingMode::IMPLIED, 2};
 };
 // HELPERS
 
@@ -2140,6 +2143,16 @@ void CPU::rolAbsoluteX()
     setNZ(value);
 }
 
+void CPU::sed()
+{
+    P |= 0x08;
+}
+
+void CPU::cld()
+{
+    P &= ~0x08;
+}
+
 void CPU::clock()
 {
     if (cycles == 0)
@@ -2154,8 +2167,8 @@ void CPU::clock()
             std::cerr << "CRASH: opcode " << std::hex << (int)opcode << "\n";
             return;
         }
-        (this->*instr.execute)();
         cycles = instr.cycles;
+        (this->*instr.execute)();
     }
 
     cycles--;
@@ -2165,6 +2178,7 @@ void CPU::clock()
         NMI = false;
         pushPC();
         pushStatus();
+        P |= 0x04;
 
         uint16_t vector = bus.read(0xFFFA) | (bus.read(0xFFFB) << 8);
         pc = vector;

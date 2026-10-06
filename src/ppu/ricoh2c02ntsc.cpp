@@ -286,7 +286,10 @@ void PPU::write2000(uint8_t data)
 
     spriteHeight = (data & 0x20) ? 16 : 8;
 
-    nmiOutput = (data & 0x80) != 0; // Update the NMI in the CPU when VBLANK is set
+    bool wasOn = nmiOutput;
+    nmiOutput = (data & 0x80) != 0;
+    if (!wasOn && nmiOutput && vblankFlag)
+        bus.cpu->NMI = true;
 }
 void PPU::write2001(uint8_t data)
 {
@@ -620,6 +623,7 @@ void PPU::clock()
     if (scanline == 241 && cycle == 1)
     {
         vblankFlag = true;
+        frameComplete = true;
     }
 
     if (!prevVblank && vblankFlag && nmiOutput)
@@ -659,7 +663,7 @@ void PPU::clock()
                 }
             }
         }
-
+        spriteForeground = true;
         // SPRITE SHIFTING
         if (scanline >= 0 && scanline < 240)
         {
@@ -781,6 +785,21 @@ void PPU::drawFrame()
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
+
+    // frame limiter
+    static Uint64 last = SDL_GetPerformanceCounter();
+    const double freq = (double)SDL_GetPerformanceFrequency();
+    const double frameTime = 1.0 / 60.0988; // NTSC freq ~60Hz
+
+    while (true)
+    {
+        double elapsed = (SDL_GetPerformanceCounter() - last) / freq;
+        if (elapsed >= frameTime)
+            break;
+        if (frameTime - elapsed > 0.002)
+            SDL_Delay(1); // sleep while there is plenty of time left
+    }
+    last = SDL_GetPerformanceCounter();
 }
 void PPU::connectBus(Bus *b)
 {

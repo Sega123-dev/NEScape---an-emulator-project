@@ -155,6 +155,7 @@ public:
     bool spriteForeground = false;
 
     uint8_t oamIndex;
+    bool frameComplete = false;
 
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
