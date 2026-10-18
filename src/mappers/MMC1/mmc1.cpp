@@ -34,6 +34,8 @@ MMC1::MMC1(const std::vector<uint8_t> &prgData, const std::vector<uint8_t> &chrD
 };
 void MMC1::cpuWrite(uint16_t addr, uint8_t value)
 {
+    if (addr < 0x8000)
+        return;
 
     if (value & 0x80)
     {
@@ -57,10 +59,7 @@ void MMC1::cpuWrite(uint16_t addr, uint8_t value)
             chrBank1 = shiftReg & 0x1F;
         else if (addr >= 0xE000 && addr <= 0xFFFF)
             prgBank = shiftReg & 0x1F;
-
-        shiftReg = 0;
-        shiftCount = 0;
-
+        // MIRRORING MIGRATED TO PPU
         switch (controlReg & 0x03)
         {
         case 0:
@@ -116,7 +115,7 @@ uint8_t MMC1::ppuRead(uint16_t addr)
     addr &= 0x1FFF;
     uint8_t chrMode = (controlReg >> 4) & 1;
     uint8_t bank = chrBank0 & 0x1E;
-    uint16_t finalAddr = 0;
+    size_t finalAddr = 0;
     if (chrMode == 0)
     {
         bank = chrBank0 & 0x1E;
