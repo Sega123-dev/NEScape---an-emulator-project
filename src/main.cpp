@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     PPU ppu;
     std::cout << "ROM DUMP\n";
 
-    Mapper *mapper = dumpROM("roms/metroid.nes");
+    Mapper *mapper = dumpROM("roms/gradius.nes");
 
     if (!mapper)
         return -1;
