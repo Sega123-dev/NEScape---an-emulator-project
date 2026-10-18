@@ -982,7 +982,7 @@ void CPU::adcAbsoluteX()
     uint8_t highByte = bus.read(pc++);
     uint16_t baseAddr = ((highByte << 8) | lowByte);
     uint16_t subAddr = baseAddr + X;
-    uint8_t operand = bus.read(baseAddr);
+    uint8_t operand = bus.read(subAddr);
 
     if ((baseAddr & 0xFF00) != (subAddr & 0xFF00))
         cycles++;
@@ -1006,7 +1006,7 @@ void CPU::adcAbsoluteY()
     uint8_t highByte = bus.read(pc++);
     uint16_t baseAddr = ((highByte << 8) | lowByte);
     uint16_t subAddr = baseAddr + Y;
-    uint8_t operand = bus.read(baseAddr);
+    uint8_t operand = bus.read(subAddr);
 
     if ((baseAddr & 0xFF00) != (subAddr & 0xFF00))
         cycles++;
@@ -1116,7 +1116,7 @@ void CPU::sbcZeroPage()
 void CPU::sbcZeroPageX()
 {
     uint8_t addr = bus.read(pc++);
-    uint8_t value = bus.read(addr + X) & 0xFF;
+    uint8_t value = bus.read((uint8_t)(addr + X));
     uint16_t temp = (uint16_t)A - value - (1 - (P & 0x01));
 
     if (temp < 0x100)

@@ -528,7 +528,8 @@ void PPU::clock()
         colorIndex =
             bgPixel ? ((bgPalette << 2) | bgPixel) : 0;
     }
-
+    if (!showBackground)
+        bgPixel = 0;
     // SPRITE EVALUATION
 
     if (cycle >= 257 && cycle <= 320)
@@ -590,32 +591,38 @@ void PPU::clock()
     }
     if (cycle == 257)
     {
-        memset(secondaryOAM, 0, 32);
-        spriteCount = 0;
-        spriteOverflow = false;
-        spriteZeroPossible = false;
-
-        for (int i = 0; i < 64; i++)
+        if (renderingEnabled && scanline >= 0 && scanline <= 238)
         {
-            uint8_t Ypos = oam[i * 4 + 0];
+            memset(secondaryOAM, 0, 32);
+            spriteCount = 0;
+            spriteZeroPossible = false;
 
-            if (scanline >= Ypos && scanline < Ypos + spriteHeight)
+            for (int i = 0; i < 64; i++)
             {
-                if (spriteCount >= 8)
+                uint8_t Ypos = oam[i * 4 + 0];
+
+                if (scanline >= Ypos && scanline < Ypos + spriteHeight)
                 {
-                    spriteOverflow = true;
-                    break;
+                    if (spriteCount >= 8)
+                    {
+                        spriteOverflow = true;
+                        break;
+                    }
+                    if (i == 0)
+                        spriteZeroPossible = true;
+                    for (int j = 0; j < 4; j++)
+                        secondaryOAM[spriteCount * 4 + j] = oam[i * 4 + j];
+
+                    spriteAttributes[spriteCount] = secondaryOAM[spriteCount * 4 + 2];
+                    spriteX[spriteCount] = secondaryOAM[spriteCount * 4 + 3];
+
+                    spriteCount++;
                 }
-                if (i == 0)
-                    spriteZeroPossible = true;
-                for (int j = 0; j < 4; j++)
-                    secondaryOAM[spriteCount * 4 + j] = oam[i * 4 + j];
-
-                spriteAttributes[spriteCount] = secondaryOAM[spriteCount * 4 + 2];
-                spriteX[spriteCount] = secondaryOAM[spriteCount * 4 + 3];
-
-                spriteCount++;
             }
+        }
+        else
+        {
+            spriteCount = 0;
         }
     }
     // SET VBLANK
