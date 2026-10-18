@@ -2,7 +2,7 @@
 
 # What is an emulator?
 
-Emulator is a software that mimics the real hardware.This repository is example of an emulator based on a legacy 8-bit console manufactured in 1983 called **Nintendo Entertainment System(NES)**,also known as **Famicom**, in which development,various companies worked,mainly Nintendo.Like other emulators,this emulator is also not 100% accurate as a real console.In theory, the accuracy of this emulator is around 65% if we do not include the pirated and homebrew aspects of this console.With this emulator in theory,you should be able to play around 70% of commercial titles.
+Emulator is a software that mimics the real hardware.This repository is example of an emulator based on a legacy 8-bit console manufactured in 1983 called **Nintendo Entertainment System(NES)**,also known as **Famicom**, in which development,various companies worked,mainly Nintendo.Like other emulators,this emulator won't be 100% accurate as a real console.In theory, the goal accuracy of this emulator is around 65% if we do not include the pirated and homebrew aspects of this console.With this emulator in theory,you should be able to play around 70% of commercial titles when I release the full emulator demo.
 The best comparison to this emulator could be the earliest versions of FCEUX or Nestopia emulators.
 
 # What are the components of the NES?
@@ -25,15 +25,15 @@ The best comparison to this emulator could be the earliest versions of FCEUX or 
 
 ## NES vs NES-Emulator Components
 
-| Component         | Real NES                        | NES Emulator                     |
+| Component         | Real NES                        | NEScape                     |
 |------------------|---------------------------------|---------------------------------|
-| CPU               | Ricoh 2A03, 151 official opcodes (D flag ignored) | Full official CPU, 149 opcodes, excluding D-flag handling |
-| PPU (Graphics)    | 100% accurate, full NTSC/PAL quirks | ~75% accuracy, handles most graphics but skips minor timing quirks |
-| APU (Audio)       | 5 channels (Pulse 1+2, Triangle, Noise, DMC) | 3 easiest channels implemented(Pulse 1 and 2,Triangle) |
-| RAM               | 2 KB                            | 2 KB                            |
-| VRAM              | 4 KB                            | 4 KB                            |
+| CPU               | Ricoh 2A03, 151 official opcodes (D flag ignored) | 151 official opcodes implemented |
+| PPU (Graphics)    | 100% accurate, full NTSC/PAL quirks | ~75% accuracy goal, will handle most graphics but skips minor timing quirks |
+| APU (Audio)       | 5 channels (Pulse 1+2, Triangle, Noise, DMC) | 3 easiest channels will be implemented(Pulse 1 and 2,Triangle),possibility for DMC exists |
+| RAM               | 2 KB internal                            | 2 KB virtual                          |
+| VRAM              | 4 KB internal                           | 4 KB virtual                           |
 | Cartridge Slot    | Supports 300+ mappers           | Supports main mappers, limited subset(NROM,CNROM,UXROM,MMC1,MMC3) |
-| Controllers       | 2 standard controllers + optional accessories (Zapper, etc.) | Controls mapped to keyboard
+| Controllers       | 2 standard controllers + optional accessories (Zapper, etc.) | Controls will be mapped to keyboard and modern controller
 
 # Early development
 
