@@ -14,7 +14,7 @@ Tested ROMs(Demo/TS/MM):
 Ballon Fight
 !Blargg CPU stress test
 Donkey Kong
-Duck Hunt
+?Duck Hunt
 Excitebike
 Kung Fu
 Mario Bros.
