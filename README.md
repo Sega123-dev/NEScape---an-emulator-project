@@ -49,7 +49,6 @@ In the mid-July 2026,NEScape finally came to life and showed some graphics.It wa
 
 # Support and versions
 
-- *v0.1* - Unstable and unplayable version.
-- *v0.5* - First MVP.
+- *v0.1* - Pre-release 0.1.0,First MVP
 
 Emulator currenlty can work only on **Windows** OS.
