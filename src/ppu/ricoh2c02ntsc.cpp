@@ -447,19 +447,19 @@ void PPU::clock()
     if (scanline == 261 && cycle == 340)
         isOddFrame = !isOddFrame;
 
-    // PRE-RENDER SETS
-
-    if (scanline == -1 && cycle == 1)
-    {
-        vblankFlag = false;
-        sprite0Hit = false;
-        spriteOverflow = false;
-    }
-
     if (scanline >= -1 && scanline < 240 && renderingEnabled)
     {
+        // PRE-RENDER SETS
+
+        if (scanline == -1 && cycle == 1)
+        {
+            vblankFlag = false;
+            sprite0Hit = false;
+            spriteOverflow = false;
+        }
 
         // BACKGROUND SHIFTING
+        // shift on 2-256 and 322-337 (not on 1 or 321)
         if ((cycle >= 2 && cycle <= 256) || (cycle >= 322 && cycle <= 337))
         {
             bgShiftLow <<= 1;
@@ -467,14 +467,14 @@ void PPU::clock()
             attrShiftLow <<= 1;
             attrShiftHigh <<= 1;
         }
-        if ((cycle >= 1 && cycle <= 256) || (cycle >= 321 && cycle <= 336))
+        if (
+            ((cycle >= 1 && cycle <= 256) || (cycle >= 321 && cycle <= 336)))
         {
 
             switch (cycle % 8)
             {
             case 1:
-                if (cycle != 1 && cycle != 321)
-                    loadBackgroundShifters();
+                loadBackgroundShifters();
                 nextTileID = ppuReadRaw(0x2000 | (v & 0x0FFF));
                 break;
 
@@ -501,6 +501,7 @@ void PPU::clock()
                 break;
             }
         }
+
         if (cycle == 256)
             incrementY();
 
