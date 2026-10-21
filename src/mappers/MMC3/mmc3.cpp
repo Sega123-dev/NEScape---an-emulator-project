@@ -48,10 +48,12 @@ MMC3::MMC3(std::vector<uint8_t> &prgData, std::vector<uint8_t> &chrData, const b
 
     if (!vertMirrorPort)
     {
+        mirroring = HORIZONTAL;
         mirrorHorizontal = true;
     }
     else
     {
+        mirroring = VERTICAL;
         mirrorHorizontal = false;
     }
 
@@ -186,6 +188,9 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
             bankSelect = data & 0x07;
             prgMode = (data & 0x40) >> 6;
             chrMode = (data & 0x80) >> 7;
+
+            updatePRGBanks();
+            updateCHRBanks();
         }
         else
         {
@@ -204,6 +209,7 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
         if ((addr & 1) == 0)
         {
             mirrorHorizontal = !(data & 0x01);
+            mirroring = mirrorHorizontal ? HORIZONTAL : VERTICAL;
         }
         else
         {
@@ -300,12 +306,16 @@ void MMC3::ppuWrite(uint16_t addr, uint8_t data)
     if (addr >= 0x0000 && addr <= 0x1FFF)
     {
 
-        uint8_t slot = addr / 0x400;
+        uint16_t a = addr & 0x1FFF;
+        uint8_t slot = a / 0x400;
         uint8_t bankNumber = chrBankMap[slot];
-        int bankSize = (slot <= 5) ? 0x400 : 0x800;
 
-        int index = bankNumber * bankSize + (addr % bankSize);
-        chr[index] = data;
+        uint32_t index =
+            bankNumber * 0x400 +
+            (a & 0x03FF);
+
+        if (index < chr.size())
+            chr[index] = data;
 
         clockIRQ((addr & 0x1000) >> 12);
     }
@@ -346,5 +356,10 @@ void MMC3::ppuWrite(uint16_t addr, uint8_t data)
 }
 Mirror MMC3::getMirror()
 {
-    return mirrorHorizontal ? HORIZONTAL : VERTICAL;
+    if (mirroring == HORIZONTAL)
+        return Mirror::HORIZONTAL;
+    else
+        return Mirror::VERTICAL;
+
+    // CHORE: FOUR-SCREEN MIRRORING
 }

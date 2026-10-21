@@ -2188,8 +2188,6 @@ void CPU::clock()
 
     if (IRQ && !(P & 0x04))
     {
-        IRQ = false;
-
         pushPC();
         pushStatus(false);
 

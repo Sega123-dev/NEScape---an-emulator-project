@@ -38,6 +38,7 @@ private:
 
     int prgBankMap[4];
     int chrBankMap[8];
+    Mirror mirroring;
     bool mirrorHorizontal;
 
     bool wramEnabled;

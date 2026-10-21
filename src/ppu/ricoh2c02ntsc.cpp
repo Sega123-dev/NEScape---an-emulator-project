@@ -447,34 +447,34 @@ void PPU::clock()
     if (scanline == 261 && cycle == 340)
         isOddFrame = !isOddFrame;
 
-    if (scanline >= -1 && scanline < 240)
-    {
-        // PRE-RENDER SETS
+    // PRE-RENDER SETS
 
-        if (scanline == -1 && cycle == 1)
-        {
-            vblankFlag = false;
-            sprite0Hit = false;
-            spriteOverflow = false;
-        }
+    if (scanline == -1 && cycle == 1)
+    {
+        vblankFlag = false;
+        sprite0Hit = false;
+        spriteOverflow = false;
+    }
+
+    if (scanline >= -1 && scanline < 240 && renderingEnabled)
+    {
 
         // BACKGROUND SHIFTING
-
-        if (renderingEnabled &&
-            ((cycle >= 1 && cycle <= 256) || (cycle >= 321 && cycle <= 336)))
+        if ((cycle >= 2 && cycle <= 256) || (cycle >= 322 && cycle <= 337))
         {
-            // shift on 2-256 and 322-337 (not on 1 or 321)
-            if ((cycle >= 2 && cycle <= 256) || (cycle >= 322 && cycle <= 337))
-            {
-                bgShiftLow <<= 1;
-                bgShiftHigh <<= 1;
-                attrShiftLow <<= 1;
-                attrShiftHigh <<= 1;
-            }
+            bgShiftLow <<= 1;
+            bgShiftHigh <<= 1;
+            attrShiftLow <<= 1;
+            attrShiftHigh <<= 1;
+        }
+        if ((cycle >= 1 && cycle <= 256) || (cycle >= 321 && cycle <= 336))
+        {
+
             switch (cycle % 8)
             {
             case 1:
-                loadBackgroundShifters();
+                if (cycle != 1 && cycle != 321)
+                    loadBackgroundShifters();
                 nextTileID = ppuReadRaw(0x2000 | (v & 0x0FFF));
                 break;
 
@@ -501,17 +501,14 @@ void PPU::clock()
                 break;
             }
         }
-        if (renderingEnabled)
-        {
-            if (cycle == 256)
-                incrementY();
+        if (cycle == 256)
+            incrementY();
 
-            if (cycle == 257)
-                copyHorizontal();
+        if (cycle == 257)
+            copyHorizontal();
 
-            if (scanline == -1 && cycle >= 280 && cycle <= 304)
-                copyVertical();
-        }
+        if (scanline == -1 && cycle >= 280 && cycle <= 304)
+            copyVertical();
     }
     if (scanline >= 0 && scanline < 240 &&
         cycle >= 1 && cycle <= 256)
