@@ -24,7 +24,7 @@ private:
     uint8_t lastCpuValue = 0;
     uint8_t lastPpuValue = 0;
 
-    Mirror horizontalMirroring;
+    Mirror mirroring;
 
     void connectUxrom(Bus *b);
 };

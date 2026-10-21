@@ -16,11 +16,11 @@ UXROM::UXROM(std::vector<uint8_t> &prgData, std::vector<uint8_t> &chrData, const
 
     if (!vertMirroringPort)
     {
-        horizontalMirroring = HORIZONTAL;
+        mirroring = HORIZONTAL;
     }
     else
     {
-        horizontalMirroring = VERTICAL;
+        mirroring = VERTICAL;
     }
 }
 // PPU owns the mirroring
@@ -61,7 +61,10 @@ uint8_t UXROM::cpuRead(uint16_t addr)
 
 Mirror UXROM::getMirror()
 {
-    return horizontalMirroring ? HORIZONTAL : VERTICAL;
+    if (mirroring == HORIZONTAL)
+        return Mirror::HORIZONTAL;
+    else
+        return Mirror::VERTICAL;
 }
 
 void UXROM::connectUxrom(Bus *b)

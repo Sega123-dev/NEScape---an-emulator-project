@@ -4,6 +4,10 @@
 #include <vector>
 #include "../../bus/bus.hpp"
 
+// PRG RAM
+
+uint8_t prgRam[0x2000];
+
 void MMC1::reset()
 {
     shiftReg = 0x10;
@@ -34,6 +38,12 @@ MMC1::MMC1(const std::vector<uint8_t> &prgData, const std::vector<uint8_t> &chrD
 };
 void MMC1::cpuWrite(uint16_t addr, uint8_t value)
 {
+    if (addr < 0x8000)
+    {
+        prgRam[addr - 0x6000] = value;
+        return;
+    }
+
     if (addr < 0x8000)
         return;
 
@@ -81,7 +91,7 @@ uint8_t MMC1::cpuRead(uint16_t addr)
 {
     uint8_t value;
     if (addr < 0x8000)
-        return lastCpuValue;
+        return prgRam[addr - 0x6000];
     size_t index = 0;
     uint8_t prgMode = (controlReg >> 2) & 0x03;
 
