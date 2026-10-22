@@ -431,33 +431,31 @@ uint8_t PPU::read2007()
 }
 void PPU::clock()
 {
+    // PRE-RENDER SETS
+
+    if (scanline == -1 && cycle == 1)
+    {
+        vblankFlag = false;
+        sprite0Hit = false;
+        spriteOverflow = false;
+    }
+
     spriteHeight = (PPUCTRL & 0x20) ? 16 : 8; // Needs to be set before any first visible scanlines
 
     bool renderingEnabled = showBackground || showSprites;
 
     // ODD FRAMES NTSC SYNC
 
-    if (scanline == -1)
+    if (scanline == -1 && cycle == 339 &&
+        isOddFrame && renderingEnabled)
     {
-        if (cycle == 339 && isOddFrame && showBackground)
-        {
-            cycle++;
-        }
+        cycle++;
     }
     if (scanline == 261 && cycle == 340)
         isOddFrame = !isOddFrame;
 
     if (scanline >= -1 && scanline < 240 && renderingEnabled)
     {
-        // PRE-RENDER SETS
-
-        if (scanline == -1 && cycle == 1)
-        {
-            vblankFlag = false;
-            sprite0Hit = false;
-            spriteOverflow = false;
-        }
-
         // BACKGROUND SHIFTING
         // shift on 2-256 and 322-337 (not on 1 or 321)
         if ((cycle >= 2 && cycle <= 256) || (cycle >= 322 && cycle <= 337))
@@ -731,8 +729,11 @@ void PPU::clock()
     {
         cycle = 0;
         scanline++;
-        if (scanline > 261)
+        if (scanline > 260)
+        {
             scanline = -1;
+            isOddFrame = !isOddFrame;
+        }
     };
 }
 // SCREEN
@@ -776,6 +777,12 @@ void PPU::drawFrame()
             Color c = framebuffer[y][x];
 
             int i = (y * 256 + x) * 3;
+
+            // CRT MODE(WILL BE TOGGLED ON/OFF IN THE UI UPDATE)
+
+            uint8_t currentPixel = pixels[i];
+            pixels[i] = (currentPixel * 3 + pixels[i] * 2) / 5;
+            pixels[i] = currentPixel;
 
             pixels[i] = c.r;
             pixels[i + 1] = c.g;

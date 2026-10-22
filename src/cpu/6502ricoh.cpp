@@ -2157,6 +2157,7 @@ void CPU::clock()
 {
     if (cycles == 0)
     {
+
         uint16_t oldPC = pc;
 
         uint8_t opcode = bus.read(pc++);
@@ -2167,6 +2168,7 @@ void CPU::clock()
             std::cerr << "CRASH: opcode " << std::hex << (int)opcode << "\n";
             return;
         }
+
         cycles = instr.cycles;
         (this->*instr.execute)();
     }
