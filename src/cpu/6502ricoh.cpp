@@ -880,7 +880,7 @@ void CPU::jmpIndirect()
     uint16_t pointer = bus.read(pc) | (bus.read(pc + 1) << 8);
     pc += 2;
 
-    uint8_t lowByteAddr = pointer;
+    uint16_t lowByteAddr = pointer;
 
     uint16_t highByteAddr = (pointer & 0xFF00) | ((pointer + 1) & 0x00FF);
 
@@ -2168,7 +2168,40 @@ void CPU::clock()
             std::cerr << "CRASH: opcode " << std::hex << (int)opcode << "\n";
             return;
         }
+        struct Hist
+        {
+            uint16_t pc;
+            uint8_t b0, b1, b2, a, x, y, p, s;
+        };
+        static Hist hist[40];
+        static int h = 0, resets = 0;
 
+        hist[h % 40] = {oldPC, opcode, bus.read(oldPC + 1), bus.read(oldPC + 2), A, X, Y, P, sp};
+        h++;
+
+        if (oldPC == 0xC000 && ++resets == 2)
+        {
+            printf("RESTART! last 40 instructions (oldest first):\n");
+            int lastJmp = -1;
+            for (int i = 0; i < 40; i++)
+            {
+                const Hist &e = hist[(h + i) % 40];
+                printf("%04X  %02X %02X %02X   A=%02X X=%02X Y=%02X P=%02X SP=%02X\n",
+                       e.pc, e.b0, e.b1, e.b2, e.a, e.x, e.y, e.p, e.s);
+                if (e.b0 == 0x6C)
+                    lastJmp = (h + i) % 40;
+            }
+            if (lastJmp >= 0)
+            {
+                uint16_t ptr = hist[lastJmp].b1 | (hist[lastJmp].b2 << 8);
+                printf("JMP ($%04X): bytes at ptr: %02X %02X   (next page wrap byte: %02X)\n",
+                       ptr, bus.read(ptr), bus.read(ptr + 1), bus.read((ptr & 0xFF00) | ((ptr + 1) & 0xFF)));
+            }
+            printf("zero page 00-1F: ");
+            for (int i = 0; i < 32; i++)
+                printf("%02X ", bus.read(i));
+            printf("\n");
+        }
         cycles = instr.cycles;
         (this->*instr.execute)();
     }

@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     PPU ppu;
     std::cout << "ROM DUMP\n";
 
-    Mapper *mapper = dumpROM("roms/contra.nes");
+    Mapper *mapper = dumpROM("roms/duck hunt.nes");
 
     if (!mapper)
         return -1;

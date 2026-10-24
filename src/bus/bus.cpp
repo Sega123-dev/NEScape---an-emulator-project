@@ -89,6 +89,10 @@ uint8_t Bus::read(uint16_t addr)
             break;
         }
     }
+    else if (addr == 0x4016)
+        data = 0x40;
+    else if (addr == 0x4017)
+        data = 0x40 | 0x08; // Zapper temp fix
     else if (addr >= 0x4000 && addr <= 0x401F)
         data = openBus;
     else if (addr >= 0x4020 && addr <= 0xFFFF)
