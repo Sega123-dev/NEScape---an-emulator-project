@@ -172,6 +172,7 @@ uint16_t PPU::getLastAddress()
 
 uint8_t PPU ::ppuReadRaw(uint16_t addr)
 {
+    Mirror m = bus.mapper->getMirror();
     addr = addr & 0x3FFF;
 
     if (addr >= 0x3000 && addr <= 0x3EFF)
@@ -187,7 +188,7 @@ uint8_t PPU ::ppuReadRaw(uint16_t addr)
         uint8_t NTindex = (addr - 0x2000) / 0x400;
         unsigned int offset = (addr - 0x2000) % 0x400;
 
-        if (mirroring == HORIZONTAL)
+        if (m == HORIZONTAL)
         {
             VRAMindex = (NTindex / 2) * 0x400 + offset;
         }
@@ -220,6 +221,7 @@ uint8_t PPU ::ppuReadRaw(uint16_t addr)
 }
 void PPU::ppuWriteRaw(uint16_t addr, uint8_t data)
 {
+
     addr = addr & 0x3FFF;
 
     if (addr >= 0x3000 && addr <= 0x3EFF)
@@ -237,10 +239,11 @@ void PPU::ppuWriteRaw(uint16_t addr, uint8_t data)
     lastPPUAddress = addr;
     if (addr >= 0x2000 && addr <= 0x2FFF)
     {
+        Mirror m = bus.mapper->getMirror();
         uint8_t NTindex = (addr - 0x2000) / 0x400;
         unsigned int offset = (addr - 0x2000) % 0x400;
 
-        if (mirroring == HORIZONTAL)
+        if (m == HORIZONTAL)
         {
             VRAMindex = (NTindex / 2) * 0x400 + offset;
         }
@@ -619,6 +622,16 @@ void PPU::clock()
         else
         {
             spriteCount = 0;
+        }
+    }
+    if (renderingEnabled && scanline <= 239 && cycle == 257) // -1 (pre-render) .. 239
+    {
+        for (int i = spriteCount; i < 8; i++)
+        {
+            uint16_t table = (spriteHeight == 8) ? ((PPUCTRL & 0x08) ? 0x1000 : 0x0000) : 0x1000;
+            uint16_t addr = table + ((spriteHeight == 8) ? 0xFF : 0xFE) * 16; // tile $FF; in 8x16 mode bit 0 picks $1000
+            ppuReadRaw(addr);
+            ppuReadRaw(addr + 8);
         }
     }
     // SET VBLANK

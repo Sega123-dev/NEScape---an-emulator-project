@@ -20,9 +20,7 @@ void MMC3::reset()
     chrMode = 0;
 
     bankSelect = 0;
-
-    mirrorHorizontal = true;
-    wramEnabled = false;
+    wramEnabled = true;
     wramWriteProtected = false;
     irqCounter = 0;
     irqReloadValue = 0;
@@ -208,8 +206,9 @@ void MMC3::cpuWrite(uint16_t addr, uint8_t data)
     {
         if ((addr & 1) == 0)
         {
-            mirrorHorizontal = !(data & 0x01);
+            mirrorHorizontal = (data & 0x01) != 0;
             mirroring = mirrorHorizontal ? HORIZONTAL : VERTICAL;
+            bus.ppu->initMirror();
         }
         else
         {
@@ -266,7 +265,7 @@ uint8_t MMC3::ppuRead(uint16_t addr)
         addr = addr % 0x1000;
         uint8_t ntIndex = addr / 0x400;
         uint8_t vramIndex;
-        uint8_t offset = addr % 0x400;
+        uint16_t offset = addr % 0x400;
         if (mirrorHorizontal)
         {
             if (ntIndex == 0 || ntIndex == 1)
@@ -324,7 +323,7 @@ void MMC3::ppuWrite(uint16_t addr, uint8_t data)
     {
         addr = addr % 0x1000;
         uint8_t ntIndex = addr / 0x400;
-        uint8_t offset = addr % 0x400;
+        uint16_t offset = addr % 0x400;
         uint16_t vramIndex;
 
         if (mirrorHorizontal)
