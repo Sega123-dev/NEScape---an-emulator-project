@@ -624,7 +624,7 @@ void PPU::clock()
             spriteCount = 0;
         }
     }
-    if (renderingEnabled && scanline <= 239 && cycle == 257) // -1 (pre-render) .. 239
+    if (renderingEnabled && scanline <= 239 && cycle >= 261 && cycle <= 320) // -1 (pre-render) .. 239
     {
         for (int i = spriteCount; i < 8; i++)
         {
@@ -679,7 +679,6 @@ void PPU::clock()
                 }
             }
         }
-        spriteForeground = true;
         // SPRITE SHIFTING
         if (scanline >= 0 && scanline < 240)
         {
@@ -763,8 +762,8 @@ void PPU::initWindow()
         "NEScape",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        256 * 3,
-        240 * 3,
+        256 * 4,
+        240 * 4,
         0);
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -790,12 +789,6 @@ void PPU::drawFrame()
             Color c = framebuffer[y][x];
 
             int i = (y * 256 + x) * 3;
-
-            // CRT MODE(WILL BE TOGGLED ON/OFF IN THE UI UPDATE)
-
-            uint8_t currentPixel = pixels[i];
-            pixels[i] = (currentPixel * 3 + pixels[i] * 2) / 5;
-            pixels[i] = currentPixel;
 
             pixels[i] = c.r;
             pixels[i + 1] = c.g;

@@ -118,23 +118,32 @@ void MMC3::updateCHRBanks()
 }
 void MMC3::clockIRQ(int CurrentA12)
 {
-    if (prevA12 == 0 && CurrentA12 == 1)
+    int now = (bus.ppu->scanline + 1) * 341 + bus.ppu->cycle;
+    bool clockIt = false;
+
+    if (CurrentA12 == 0 && prevA12 == 1)
+        lowSince = now; // A12 just fell
+    else if (CurrentA12 == 1 && prevA12 == 0)
     {
-        if (irqCounter == 0 || irqReloadFlag)
-        {
-            irqCounter = irqReloadValue;
-            irqReloadFlag = false;
-        }
-        else
-        {
-            irqCounter--;
-        }
-
-        if (irqCounter == 0 && irqEnabled)
-            bus.cpu->setIRQ();
+        int low = now - lowSince;
+        if (low < 0)
+            low += 263 * 341;
+        clockIt = (low >= 9);
     }
-
     prevA12 = CurrentA12;
+    if (!clockIt)
+        return;
+
+    if (irqCounter == 0 || irqReloadFlag)
+    {
+        irqCounter = irqReloadValue;
+        irqReloadFlag = false;
+    }
+    else
+        irqCounter--;
+
+    if (irqCounter == 0 && irqEnabled)
+        bus.cpu->setIRQ();
 }
 uint8_t MMC3::cpuRead(uint16_t addr)
 {

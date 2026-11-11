@@ -49,4 +49,5 @@ private:
     bool irqEnabled;
     bool irqReloadFlag;
     bool prevA12;
+    int lowSince = -100000;
 };

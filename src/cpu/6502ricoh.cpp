@@ -2157,49 +2157,47 @@ void CPU::clock()
 {
     if (cycles == 0)
     {
-
-        uint16_t oldPC = pc;
-
-        uint8_t opcode = bus.read(pc++);
-        Instruction &instr = table[opcode];
-
-        if (!instr.execute)
+        if (NMI)
         {
-            std::cerr << "CRASH: opcode " << std::hex << (int)opcode << "\n";
-            return;
-        }
+            NMI = false;
+            pushPC();
+            pushStatus();
+            P |= 0x04;
 
-        cycles = instr.cycles;
-        (this->*instr.execute)();
+            uint16_t vector = bus.read(0xFFFA) | (bus.read(0xFFFB) << 8);
+            pc = vector;
+
+            cycles = 7;
+        }
+        else if (IRQ && !(P & 0x04))
+        {
+            pushPC();
+            pushStatus(false);
+
+            P |= 0x04;
+
+            uint16_t vec = bus.read(0xFFFE) | (bus.read(0xFFFF) << 8);
+            pc = vec;
+
+            cycles = 7;
+        }
+        else
+        {
+            uint8_t opcode = bus.read(pc++);
+            Instruction &instr = table[opcode];
+
+            if (!instr.execute)
+            {
+                std::cerr << "CRASH: opcode " << std::hex << (int)opcode << "\n";
+                return;
+            }
+
+            cycles = instr.cycles;
+            (this->*instr.execute)();
+        }
     }
 
     cycles--;
-
-    if (NMI)
-    {
-        NMI = false;
-        pushPC();
-        pushStatus();
-        P |= 0x04;
-
-        uint16_t vector = bus.read(0xFFFA) | (bus.read(0xFFFB) << 8);
-        pc = vector;
-
-        cycles = 7;
-    }
-
-    if (IRQ && !(P & 0x04))
-    {
-        pushPC();
-        pushStatus(false);
-
-        P |= 0x04;
-
-        uint16_t vec = bus.read(0xFFFE) | (bus.read(0xFFFF) << 8);
-        pc = vec;
-
-        cycles = 7;
-    }
 }
 void CPU::connectBus(Bus *b)
 {
