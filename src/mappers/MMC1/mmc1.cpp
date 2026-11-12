@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <vector>
 #include "../../bus/bus.hpp"
+#include "../iNES_reader/reader.hpp"
 
-static bool chrRam = false;
 uint8_t prgRam[0x2000];
 void MMC1::reset()
 {
@@ -19,11 +19,6 @@ MMC1::MMC1(const std::vector<uint8_t> &prgData, const std::vector<uint8_t> &chrD
 {
     prg = prgData;
     chr = chrData;
-    if (chr.empty())
-    {
-        chr.resize(0x2000, 0);
-        chrRam = true;
-    }
     reset();
     mirroring = mirrorPortVertical ? VERTICAL : HORIZONTAL;
 }
@@ -111,8 +106,7 @@ static size_t chrIndex(uint8_t ctrl, uint8_t b0, uint8_t b1, uint16_t addr, size
 uint8_t MMC1::ppuRead(uint16_t addr) { return chr[chrIndex(controlReg, chrBank0, chrBank1, addr, chr.size())]; }
 void MMC1::ppuWrite(uint16_t addr, uint8_t data)
 {
-    if (chrRam)
-        chr[chrIndex(controlReg, chrBank0, chrBank1, addr, chr.size())] = data; // CHR-ROM ignores writes
+    chr[chrIndex(controlReg, chrBank0, chrBank1, addr, chr.size())] = data; // CHR-ROM ignores writes
 }
 Mirror MMC1::getMirror() { return mirroring; }
 void MMC1::connectMMC1(Bus *b)
