@@ -29,7 +29,7 @@ The best comparison to this emulator could be the earliest versions of FCEUX or 
 |------------------|---------------------------------|---------------------------------|
 | CPU               | Ricoh 2A03, 151 official opcodes (D flag ignored) | 151 official opcodes implemented |
 | PPU (Graphics)    | 100% accurate, full NTSC/PAL quirks | ~75% accuracy goal, will handle most graphics but skips minor timing quirks |
-| APU (Audio)       | 5 channels (Pulse 1+2, Triangle, Noise, DMC) | 3 easiest channels will be implemented(Pulse 1 and 2,Triangle),possibility for DMC exists |
+| APU (Audio)       | 5 channels (Pulse 1+2, Triangle, Noise, DMC) | All 5 channels,presented by SDL |
 | RAM               | 2 KB internal                            | 2 KB virtual                          |
 | VRAM              | 4 KB internal                           | 4 KB virtual                           |
 | Cartridge Slot    | Supports 300+ mappers           | Supports main mappers, limited subset(NROM,CNROM,UXROM,MMC1,MMC3) |
