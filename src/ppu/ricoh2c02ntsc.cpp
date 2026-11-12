@@ -169,7 +169,20 @@ uint16_t PPU::getLastAddress()
 {
     return lastPPUAddress;
 }
-
+static unsigned ntOffset(Mirror m, uint8_t nt, unsigned off)
+{
+    switch (m)
+    {
+    case HORIZONTAL:
+        return (nt / 2) * 0x400 + off;
+    case VERTICAL:
+        return (nt % 2) * 0x400 + off;
+    case ONESCREENLOW:
+        return off;
+    default:
+        return 0x400 + off;
+    }
+}
 uint8_t PPU ::ppuReadRaw(uint16_t addr)
 {
     Mirror m = bus.mapper->getMirror();
@@ -188,14 +201,7 @@ uint8_t PPU ::ppuReadRaw(uint16_t addr)
         uint8_t NTindex = (addr - 0x2000) / 0x400;
         unsigned int offset = (addr - 0x2000) % 0x400;
 
-        if (m == HORIZONTAL)
-        {
-            VRAMindex = (NTindex / 2) * 0x400 + offset;
-        }
-        else
-        {
-            VRAMindex = (NTindex % 2) * 0x400 + offset;
-        }
+        VRAMindex = ntOffset(m, NTindex, offset);
         lastPPUAddress = addr;
         return vram[VRAMindex];
     }
@@ -243,14 +249,7 @@ void PPU::ppuWriteRaw(uint16_t addr, uint8_t data)
         uint8_t NTindex = (addr - 0x2000) / 0x400;
         unsigned int offset = (addr - 0x2000) % 0x400;
 
-        if (m == HORIZONTAL)
-        {
-            VRAMindex = (NTindex / 2) * 0x400 + offset;
-        }
-        else
-        {
-            VRAMindex = (NTindex % 2) * 0x400 + offset;
-        }
+        VRAMindex = ntOffset(m, NTindex, offset);
 
         vram[VRAMindex] = data;
         lastPPUAddress = addr;
