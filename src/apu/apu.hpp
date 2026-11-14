@@ -4,7 +4,6 @@
 #include "traingle/traingle.hpp"
 #include "noise/noise.hpp"
 #include "dmc/dmc.hpp"
-#include "frame_count/frame_counter.hpp"
 #pragma once
 using namespace std;
 
@@ -17,13 +16,12 @@ public:
     NoiseChannel noise;
     DMCChannel dmc;
 
-    FrameCounter frameCounter;
-
     bool apuEnabled = true;
     bool pal = false;
 
     uint64_t cpuCycles = 0;
-    bool cycleParity;
+
+    uint32_t frameCounter;
 
     double sampleRate = 48000;
     double sampleAccumulator = 0;
@@ -37,4 +35,15 @@ public:
     float mix();
 
     void generateSamples();
+
+    bool fiveStepMode = false;
+    bool frameIRQ = false;
+    bool IRQFire = false;
+
+    bool FCResetPending = false;
+    uint8_t FCResetDelay = 0;
+
+    void clockFrameCounter();
+    void clockQuarterFrame();
+    void clockHalfFrame();
 };

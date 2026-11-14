@@ -76,7 +76,6 @@ void PulseChannel::write(uint16_t addr, uint8_t value)
         sequencePosition = 0;
         envelopeStart = true;
         break;
-        // TODO: Pulse 2 reg writes
     }
 }
 
