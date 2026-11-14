@@ -18,7 +18,6 @@ public:
     bool lengthHalt = false;
 
     bool constantVolume = false;
-    bool envelopeLoop = false;
     bool envelopeStart = false;
 
     uint8_t envelopePeriod = 0;
@@ -41,5 +40,8 @@ public:
     void clockLengthCounter();
     void clockSweep();
 
+    uint16_t sweepTarget();
+
     uint8_t output();
+    uint8_t outputVolume();
 };
