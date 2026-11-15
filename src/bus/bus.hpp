@@ -18,6 +18,7 @@ class Mapper;
 class MMC1;
 class NROM;
 class UXROM;
+class APU;
 
 class Bus
 {
@@ -29,6 +30,7 @@ public:
 
     CPU *cpu;
     PPU *ppu;
+    APU *apu;
     Mapper *mapper = nullptr;
     uint8_t ram[2048];
 

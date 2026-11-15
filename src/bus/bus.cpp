@@ -1,4 +1,5 @@
 #include "bus.hpp"
+#include "../apu/apu.hpp"
 void Bus::write(uint16_t addr, uint8_t data)
 {
     openBus = data;
@@ -43,15 +44,20 @@ void Bus::write(uint16_t addr, uint8_t data)
 
             for (int i = 0; i < 256; i++)
             {
-                bus.ppu->oam[(bus.ppu->OAMADDR + i) & 0xFF] = bus.read(startAddr + i);
+                bus.ppu->oam[(bus.ppu->OAMADDR + i) & 0xFF] =
+                    bus.read(startAddr + i);
             }
 
-            bus.cpu->cycles += 513; // DMA STALL
+            bus.cpu->cycles += 513;
         }
-        else
+        else if ((addr >= 0x4000 && addr <= 0x4013) ||
+                 addr == 0x4015 ||
+                 addr == 0x4017)
         {
-            return; // Other I/O
+            bus.apu->write(addr, data);
         }
+
+        return;
     }
 
     else if (addr >= 0x4020 && addr <= 0xFFFF)
@@ -89,8 +95,12 @@ uint8_t Bus::read(uint16_t addr)
             break;
         }
     }
+    else if (addr == 0x4015)
+        data = bus.apu->read(addr);
+
     else if (addr == 0x4016)
         data = 0x40;
+
     else if (addr == 0x4017)
         data = 0x40 | 0x08; // Zapper temp fix
     else if (addr >= 0x4000 && addr <= 0x401F)

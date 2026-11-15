@@ -85,26 +85,31 @@ void APU::clock()
         pulse2.clockTimer();
     }
 
+    bool resetOccurred = false;
+
     if (FCResetPending)
     {
-        FCResetDelay--;
+        if (FCResetDelay > 0)
+            FCResetDelay--;
 
         if (FCResetDelay == 0)
         {
             FCResetPending = false;
             frameCounter = 0;
+            resetOccurred = true;
 
             if (fiveStepMode)
             {
                 clockQuarterFrame();
                 clockHalfFrame();
             }
-
-            return;
         }
     }
 
-    clockFrameCounter();
+    if (!resetOccurred)
+        clockFrameCounter();
+
+    generateSamples();
 }
 
 void APU::clockQuarterFrame()
@@ -130,22 +135,25 @@ void APU::clockFrameCounter()
     {
         switch (frameCounter)
         {
-        case 3729:
-            clockQuarterFrame();
-            break;
         case 7457:
             clockQuarterFrame();
-            clockHalfFrame();
             break;
-        case 11186:
-            clockQuarterFrame();
-            break;
-        case 14915:
-            // nothing
-            break;
-        case 18641:
+
+        case 14913:
             clockQuarterFrame();
             clockHalfFrame();
+            break;
+
+        case 22371:
+            clockQuarterFrame();
+            break;
+
+        case 37281:
+            clockQuarterFrame();
+            clockHalfFrame();
+            break;
+
+        case 37282:
             frameCounter = 0;
             break;
         }
@@ -154,21 +162,117 @@ void APU::clockFrameCounter()
     {
         switch (frameCounter)
         {
-        case 3729:
-            clockQuarterFrame();
-            break;
         case 7457:
             clockQuarterFrame();
-            clockHalfFrame();
             break;
-        case 11186:
-            clockQuarterFrame();
-            break;
-        case 14915:
+
+        case 14913:
             clockQuarterFrame();
             clockHalfFrame();
-            frameCounter = 0;
+            break;
+
+        case 22371:
+            clockQuarterFrame();
+            break;
+
+        case 29828:
+        case 29829: // nothing
+        case 29830:
+            if (!IRQFire)
+                frameIRQ = true;
+
+            if (frameCounter == 29829)
+            {
+                clockQuarterFrame();
+                clockHalfFrame();
+            }
+
+            if (frameCounter == 29830)
+                frameCounter = 0;
+
             break;
         }
+    }
+}
+
+double APU::pulseMixer()
+{
+    uint8_t p1 = pulse1.output();
+    uint8_t p2 = pulse2.output();
+
+    if (p1 + p2 == 0)
+        return 0.0;
+
+    return 95.88 / ((8128.0 / (p1 + p2)) + 100.0);
+}
+const int CPU_FREQUENCY = 1789773;
+
+void APU::generateSamples()
+{
+    sampleTimer += sampleRate;
+
+    if (sampleTimer >= CPU_FREQUENCY)
+    {
+        sampleTimer -= CPU_FREQUENCY;
+
+        std::lock_guard<std::mutex> lock(audioMutex);
+
+        audioBuffer.push_back(static_cast<float>(pulseMixer()));
+    }
+}
+
+// SDL AUDIO
+
+void APU::audioCallback(void *userdata, Uint8 *stream, int len)
+{
+    APU *apu = static_cast<APU *>(userdata);
+
+    float *output = reinterpret_cast<float *>(stream);
+    int sampleCount = len / sizeof(float);
+
+    std::lock_guard<std::mutex> lock(apu->audioMutex);
+
+    for (int i = 0; i < sampleCount; i++)
+    {
+        if (!apu->audioBuffer.empty())
+        {
+            output[i] = apu->audioBuffer.front();
+            apu->audioBuffer.erase(apu->audioBuffer.begin());
+        }
+        else
+        {
+            output[i] = 0.0f;
+        }
+    }
+}
+
+bool APU::initAudio()
+{
+    SDL_AudioSpec want{}, have{};
+
+    want.freq = 44100;
+    want.format = AUDIO_F32SYS;
+    want.channels = 1;
+    want.samples = 1024;
+    want.callback = APU::audioCallback;
+    want.userdata = this;
+
+    audioDevice = SDL_OpenAudioDevice(
+        nullptr, 0, &want, &have, 0);
+
+    if (audioDevice == 0)
+        return false;
+
+    SDL_PauseAudioDevice(audioDevice, 0);
+
+    return true;
+}
+
+void APU::shutdownAudio()
+{
+    if (audioDevice != 0)
+    {
+        SDL_CloseAudioDevice(audioDevice);
+        audioDevice = 0;
     }
 }

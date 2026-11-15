@@ -32,8 +32,6 @@ public:
     uint8_t sweepDivider = 0;
     uint8_t sweepShift = 0;
 
-    uint8_t outputVolume = 0;
-
     void write(uint16_t address, uint8_t value);
     void clockTimer();
     void clockEnvelope();

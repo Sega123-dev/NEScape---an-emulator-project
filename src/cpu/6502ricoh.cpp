@@ -1,4 +1,5 @@
 #include "6502ricoh.hpp"
+#include "../apu/apu.hpp"
 #include <cstdlib>
 CPU cpu;
 Bus bus;
@@ -2155,6 +2156,7 @@ void CPU::cld()
 
 void CPU::clock()
 {
+    bus.apu->clock();
     if (cycles == 0)
     {
         if (NMI)
