@@ -30,14 +30,27 @@ void APU::write(uint16_t addr, uint8_t value)
     case 0x4007:
         pulse2.write(addr - 4, value);
         break;
+    case 0x4008:
+    case 0x4009:
+    case 0x400A:
+    case 0x400B:
+        triangle.write(addr, value);
+        break;
     case 0x4015:
     {
         bool enabledPulse1 = pulse1.enabled = value & 0x01;
         bool enabledPulse2 = pulse2.enabled = value & 0x02;
+        bool enabledTriangle = triangle.enabled = value & 0x04;
+
         if (!enabledPulse1)
             pulse1.lengthCounter = 0;
+
         if (!enabledPulse2)
             pulse2.lengthCounter = 0;
+
+        if (!enabledTriangle)
+            triangle.lengthCounter = 0;
+
         break;
     }
     case 0x4017:
@@ -65,7 +78,8 @@ uint8_t APU::read(uint16_t addr)
             status = status | 0x01;
         if (pulse2.lengthCounter > 0)
             status = status | 0x02;
-
+        if (triangle.lengthCounter > 0)
+            status |= 0x04;
         if (frameIRQ)
             status |= 0x40;
 
@@ -78,7 +92,7 @@ uint8_t APU::read(uint16_t addr)
 void APU::clock()
 {
     cpuCycles++;
-
+    triangle.clockTimer();
     if (cpuCycles % 2 == 0)
     {
         pulse1.clockTimer();
@@ -116,6 +130,8 @@ void APU::clockQuarterFrame()
 {
     pulse1.clockEnvelope();
     pulse2.clockEnvelope();
+
+    triangle.clockLinearCounter();
 }
 
 void APU::clockHalfFrame()
@@ -125,6 +141,8 @@ void APU::clockHalfFrame()
 
     pulse1.clockSweep();
     pulse2.clockSweep();
+
+    triangle.clockLengthCounter();
 }
 
 void APU::clockFrameCounter()
@@ -205,6 +223,22 @@ double APU::pulseMixer()
 
     return 95.88 / ((8128.0 / (p1 + p2)) + 100.0);
 }
+
+double APU::tndMixer()
+{
+    double triangleInput = triangle.output() / 8227.0;
+
+    if (triangleInput == 0.0)
+        return 0.0;
+
+    return 159.79 / ((1.0 / triangleInput) + 100.0);
+}
+
+double APU::mix()
+{
+    return tndMixer() + pulseMixer();
+}
+
 const int CPU_FREQUENCY = 1789773;
 
 void APU::generateSamples()
@@ -217,7 +251,7 @@ void APU::generateSamples()
 
         std::lock_guard<std::mutex> lock(audioMutex);
 
-        audioBuffer.push_back(static_cast<float>(pulseMixer()));
+        audioBuffer.push_back(static_cast<float>(mix()));
     }
 }
 
@@ -253,7 +287,7 @@ bool APU::initAudio()
     want.freq = 44100;
     want.format = AUDIO_F32SYS;
     want.channels = 1;
-    want.samples = 1024;
+    want.samples = 512;
     want.callback = APU::audioCallback;
     want.userdata = this;
 

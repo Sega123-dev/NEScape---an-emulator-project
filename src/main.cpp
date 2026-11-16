@@ -1,6 +1,5 @@
 #include "cpu/6502ricoh.hpp"
 #include "bus/bus.hpp"
-#include <mutex>
 #include "mappers/MMC3/mmc3.hpp"
 #include "mappers/iNES_reader/reader.hpp"
 #include <iostream>
@@ -13,7 +12,7 @@ int main(int argc, char *argv[])
     CPU cpu;
     PPU ppu;
     APU apu;
-    Mapper *mapper = dumpROM("roms/contra.nes");
+    Mapper *mapper = dumpROM("roms/mm2.nes");
 
     if (!mapper)
         return -1;

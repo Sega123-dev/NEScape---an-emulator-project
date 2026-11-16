@@ -1,7 +1,7 @@
 #include <cstdint>
 #include <vector>
 #include "pulse/pulse.hpp"
-#include "traingle/traingle.hpp"
+#include "triangle/triangle.hpp"
 #include "noise/noise.hpp"
 #include "dmc/dmc.hpp"
 #include <SDL2/SDL.h>
@@ -43,7 +43,7 @@ public:
     void write(uint16_t addr, uint8_t value);
     uint8_t read(uint16_t addr);
     void clock();
-    float mix();
+    double mix();
 
     void generateSamples();
 
@@ -55,6 +55,7 @@ public:
     uint8_t FCResetDelay = 0;
 
     double pulseMixer();
+    double tndMixer();
 
     void clockFrameCounter();
     void clockQuarterFrame();
