@@ -16,17 +16,22 @@ public:
     bool lengthHalt = false;
 
     bool constantVolume = false;
-    bool envelopeLoop = false;
-    bool envelopeStart = false;
+    bool envelopeRestart = false;
 
     uint8_t envelopePeriod = 0;
     uint8_t envelopeDivider = 0;
     uint8_t envelopeDecay = 0;
 
+    uint8_t envelopeDividerCounter;
+
+    uint8_t bit1;
+    uint8_t feedback;
+
     void write(uint16_t address, uint8_t value);
     void clockTimer();
     void clockEnvelope();
     void clockLengthCounter();
+    void clockLSFR();
 
     uint8_t output();
 };

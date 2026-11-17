@@ -36,11 +36,18 @@ void APU::write(uint16_t addr, uint8_t value)
     case 0x400B:
         triangle.write(addr, value);
         break;
+    case 0x400C:
+    case 0x400D:
+    case 0x400E:
+    case 0x400F:
+        noise.write(addr, value);
+        break;
     case 0x4015:
     {
         bool enabledPulse1 = pulse1.enabled = value & 0x01;
         bool enabledPulse2 = pulse2.enabled = value & 0x02;
         bool enabledTriangle = triangle.enabled = value & 0x04;
+        bool enabledNoise = noise.enabled = value & 0x08;
 
         if (!enabledPulse1)
             pulse1.lengthCounter = 0;
@@ -50,6 +57,9 @@ void APU::write(uint16_t addr, uint8_t value)
 
         if (!enabledTriangle)
             triangle.lengthCounter = 0;
+
+        if (!enabledNoise)
+            noise.lengthCounter = 0;
 
         break;
     }
@@ -80,6 +90,8 @@ uint8_t APU::read(uint16_t addr)
             status = status | 0x02;
         if (triangle.lengthCounter > 0)
             status |= 0x04;
+        if (noise.lengthCounter > 0)
+            status |= 0x08;
         if (frameIRQ)
             status |= 0x40;
 
@@ -97,6 +109,8 @@ void APU::clock()
     {
         pulse1.clockTimer();
         pulse2.clockTimer();
+
+        noise.clockTimer();
     }
 
     bool resetOccurred = false;
@@ -130,6 +144,7 @@ void APU::clockQuarterFrame()
 {
     pulse1.clockEnvelope();
     pulse2.clockEnvelope();
+    noise.clockEnvelope();
 
     triangle.clockLinearCounter();
 }
@@ -143,6 +158,7 @@ void APU::clockHalfFrame()
     pulse2.clockSweep();
 
     triangle.clockLengthCounter();
+    noise.clockLengthCounter();
 }
 
 void APU::clockFrameCounter()
@@ -227,11 +243,14 @@ double APU::pulseMixer()
 double APU::tndMixer()
 {
     double triangleInput = triangle.output() / 8227.0;
+    double noiseInput = noise.output() / 12241.0;
 
-    if (triangleInput == 0.0)
+    double input = triangleInput + noiseInput;
+
+    if (input == 0.0)
         return 0.0;
 
-    return 159.79 / ((1.0 / triangleInput) + 100.0);
+    return 159.79 / ((1.0 / input) + 100.0);
 }
 
 double APU::mix()
