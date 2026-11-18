@@ -286,6 +286,29 @@ void CPU::clearIRQ()
     IRQ = false;
 }
 
+// DMC AUDIO
+
+void CPU::requestDMC_DMA(uint16_t address)
+{
+    if (dmcDMARequested)
+        return;
+
+    dmcDMARequested = true;
+    dmcDMAAddress = address;
+}
+
+void CPU::completeDMC_DMA()
+{
+    if (!dmcDMARequested)
+        return;
+
+    uint8_t value = bus.read(dmcDMAAddress);
+
+    bus.apu->dmc.onDMAComplete(value);
+
+    dmcDMARequested = false;
+}
+
 // REST OF THE CPU
 
 void CPU::reset()
@@ -2157,6 +2180,13 @@ void CPU::cld()
 void CPU::clock()
 {
     bus.apu->clock();
+
+    if (dmcDMARequested)
+    {
+        completeDMC_DMA();
+        return;
+    }
+
     if (cycles == 0)
     {
         if (NMI)

@@ -48,6 +48,11 @@ public:
     bool NMI, IRQ, RESET;
     const double CPU_CLOCK_SPEED = 1.7897725 * 1000000;
 
+    bool dmcDMARequested = false;
+    bool dmcDMAActive = false;
+    uint16_t dmcDMAAddress = 0;
+    uint8_t dmcDMACycles = 0;
+
     void reset();
     void clock();
     void connectBus(Bus *b);
@@ -246,4 +251,7 @@ public:
     void push(uint8_t value);
     uint8_t pull();
     void pushStatus(bool breakFlag = false);
+
+    void requestDMC_DMA(uint16_t address);
+    void completeDMC_DMA();
 };

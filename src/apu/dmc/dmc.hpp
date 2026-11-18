@@ -8,7 +8,7 @@ public:
 
     bool irqEnabled = false;
     bool loop = false;
-    bool irqFlag = false;
+    bool irqPending = false;
 
     uint16_t timerPeriod = 0;
     uint16_t timerCounter = 0;
@@ -24,17 +24,21 @@ public:
 
     uint8_t shiftRegister = 0;
     uint8_t bitsRemaining = 8;
-    uint8_t outputLevel = 0;
 
     bool silence = true;
-
-    bool dmaRequested = false;
+    bool dmaPending = false;
+    uint8_t rateIndex = 0;
+    uint8_t DACOutput = 0;
 
     void write(uint16_t address, uint8_t value);
     void clockTimer();
+    void clockReader();
     void clockOutputUnit();
+    void restartSample();
+    void finishSample();
     void requestDMA();
     void onDMAComplete(uint8_t value);
+    void setEnabled(bool enabled);
 
     uint8_t output(); // 7 bit
 };

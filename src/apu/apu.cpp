@@ -42,12 +42,19 @@ void APU::write(uint16_t addr, uint8_t value)
     case 0x400F:
         noise.write(addr, value);
         break;
+    case 0x4010:
+    case 0x4011:
+    case 0x4012:
+    case 0x4013:
+        dmc.write(addr, value);
+        break;
     case 0x4015:
     {
         bool enabledPulse1 = pulse1.enabled = value & 0x01;
         bool enabledPulse2 = pulse2.enabled = value & 0x02;
         bool enabledTriangle = triangle.enabled = value & 0x04;
         bool enabledNoise = noise.enabled = value & 0x08;
+        bool enabledDMC = value & 0x10;
 
         if (!enabledPulse1)
             pulse1.lengthCounter = 0;
@@ -60,6 +67,9 @@ void APU::write(uint16_t addr, uint8_t value)
 
         if (!enabledNoise)
             noise.lengthCounter = 0;
+
+        dmc.setEnabled(enabledDMC);
+        dmc.irqPending = false;
 
         break;
     }
@@ -92,6 +102,11 @@ uint8_t APU::read(uint16_t addr)
             status |= 0x04;
         if (noise.lengthCounter > 0)
             status |= 0x08;
+        if (dmc.bytesRemaining > 0)
+            status |= 0x10;
+
+        if (dmc.irqPending)
+            status |= 0x80;
         if (frameIRQ)
             status |= 0x40;
 
@@ -104,6 +119,7 @@ uint8_t APU::read(uint16_t addr)
 void APU::clock()
 {
     cpuCycles++;
+
     triangle.clockTimer();
     if (cpuCycles % 2 == 0)
     {
@@ -112,7 +128,8 @@ void APU::clock()
 
         noise.clockTimer();
     }
-
+    dmc.clockTimer();
+    dmc.clockReader();
     bool resetOccurred = false;
 
     if (FCResetPending)
@@ -244,8 +261,9 @@ double APU::tndMixer()
 {
     double triangleInput = triangle.output() / 8227.0;
     double noiseInput = noise.output() / 12241.0;
+    double dmcInput = dmc.output() / 22638.0;
 
-    double input = triangleInput + noiseInput;
+    double input = triangleInput + noiseInput + dmcInput;
 
     if (input == 0.0)
         return 0.0;
