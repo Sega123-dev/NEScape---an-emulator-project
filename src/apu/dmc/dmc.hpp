@@ -1,6 +1,8 @@
 #include <cstdint>
 #pragma once
 
+class Bus;
+
 class DMCChannel
 {
 public:
@@ -41,4 +43,7 @@ public:
     void setEnabled(bool enabled);
 
     uint8_t output(); // 7 bit
+
+    Bus *bus = nullptr;
+    void connectBus(Bus *bus);
 };

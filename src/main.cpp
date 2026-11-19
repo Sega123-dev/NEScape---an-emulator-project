@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     CPU cpu;
     PPU ppu;
     APU apu;
-    Mapper *mapper = dumpROM("roms/mm2.nes");
+    Mapper *mapper = dumpROM("tests/dmc_advanced.nes");
 
     if (!mapper)
         return -1;
@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
     nes.cpu = &cpu;
     nes.ppu = &ppu;
     nes.apu = &apu;
+    apu.dmc.connectBus(&nes);
 
     nes.cpu->connectBus(&nes);
     nes.ppu->connectBus(&nes);

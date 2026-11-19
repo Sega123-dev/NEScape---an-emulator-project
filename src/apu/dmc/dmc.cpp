@@ -2,7 +2,10 @@
 #include "dmc.hpp"
 #include "../../bus/bus.hpp"
 
-Bus bus;
+void DMCChannel::connectBus(Bus *bus)
+{
+    this->bus = bus;
+}
 
 void DMCChannel::write(uint16_t addr, uint8_t value)
 {
@@ -77,7 +80,7 @@ void DMCChannel::clockReader()
     {
         if (bytesRemaining > 0)
         {
-            sampleBuffer = bus.read(currentAddress);
+            sampleBuffer = bus->read(currentAddress);
             sampleBufferEmpty = false;
             if (currentAddress == 0xFFFF)
                 currentAddress = 0x8000;
@@ -118,9 +121,12 @@ void DMCChannel::setEnabled(bool enabled)
 
 void DMCChannel::requestDMA()
 {
-    dmaPending = true;
-    if (sampleBufferEmpty && bytesRemaining > 0)
-        bus.cpu->requestDMC_DMA(currentAddress);
+    if (sampleBufferEmpty && bytesRemaining > 0 && !dmaPending)
+    {
+        dmaPending = true;
+        if (sampleBufferEmpty && bytesRemaining > 0)
+            bus->cpu->requestDMC_DMA(currentAddress);
+    }
 }
 
 void DMCChannel::onDMAComplete(uint8_t value)
