@@ -280,15 +280,16 @@ const int CPU_FREQUENCY = 1789773;
 
 void APU::generateSamples()
 {
+
     sampleTimer += sampleRate;
 
     if (sampleTimer >= CPU_FREQUENCY)
     {
         sampleTimer -= CPU_FREQUENCY;
-
+        double filtered = filter.filterAudio(mix());
         std::lock_guard<std::mutex> lock(audioMutex);
 
-        audioBuffer.push_back(static_cast<float>(mix()));
+        audioBuffer.push_back(static_cast<float>(filtered));
     }
 }
 

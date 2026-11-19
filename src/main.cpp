@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     CPU cpu;
     PPU ppu;
     APU apu;
-    Mapper *mapper = dumpROM("tests/dmc_advanced.nes");
+    Mapper *mapper = dumpROM("roms/loz.nes");
 
     if (!mapper)
         return -1;

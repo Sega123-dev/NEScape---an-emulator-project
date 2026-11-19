@@ -4,7 +4,9 @@
 #include "triangle/triangle.hpp"
 #include "noise/noise.hpp"
 #include "dmc/dmc.hpp"
+#include "audio_filter/filter.hpp"
 #include <SDL2/SDL.h>
+
 #pragma once
 using namespace std;
 
@@ -25,6 +27,7 @@ public:
     TriangleChannel triangle;
     NoiseChannel noise;
     DMCChannel dmc;
+    AudioFilter filter;
 
     bool apuEnabled = true;
     bool pal = false;
