@@ -5,6 +5,8 @@
 #include <iostream>
 #include "apu/apu.hpp"
 #include <SDL2/SDL.h>
+#include <filesystem>
+#include "rom_loader/findROM.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -12,8 +14,12 @@ int main(int argc, char *argv[])
     CPU cpu;
     PPU ppu;
     APU apu;
-    Mapper *mapper = dumpROM("roms/loz.nes");
+    std::filesystem::path romPath = findRom();
+    std::string path = romPath.string();
+    if (romPath.empty())
+        return -1;
 
+    Mapper *mapper = dumpROM(path.c_str());
     if (!mapper)
         return -1;
 

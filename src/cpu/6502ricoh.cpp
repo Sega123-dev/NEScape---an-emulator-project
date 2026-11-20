@@ -314,7 +314,7 @@ void CPU::completeDMC_DMA()
 void CPU::reset()
 {
 
-    NMI = IRQ = RESET = false;
+    NMI = IRQ = false;
     A = X = Y = 0;
     P = 0x24;
     sp = 0xFD;
@@ -325,7 +325,6 @@ void CPU::reset()
     uint8_t lowByte = bus.read(0xFFFC);
     uint8_t highByte = bus.read(0xFFFD);
     pc = (highByte << 8) | lowByte;
-    std::cout << "Reset Vector: " << std::hex << pc << "\n";
 }
 void CPU::brk()
 {

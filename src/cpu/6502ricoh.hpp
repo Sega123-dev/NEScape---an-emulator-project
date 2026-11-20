@@ -45,7 +45,7 @@ public:
     uint8_t dataBus, A, X, Y, P, sp, opState;
     int cycles;
     uint16_t pc;
-    bool NMI, IRQ, RESET;
+    bool NMI, IRQ;
     const double CPU_CLOCK_SPEED = 1.7897725 * 1000000;
 
     bool dmcDMARequested = false;

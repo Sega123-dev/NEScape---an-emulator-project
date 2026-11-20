@@ -24,7 +24,6 @@ public:
     void updateCHRBanks();
     void clockIRQ(int currentA12);
     void reset();
-    void connectBus(Bus *b);
 
 private:
     std::vector<uint8_t> chr;

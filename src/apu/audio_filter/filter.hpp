@@ -23,8 +23,8 @@ public:
     int fc2 = 440;
     int fclp = 14000;
 
-    const double PI = 3.14159;
-    const double e = 2.71828;
+    const double PI = 3.1415926536;
+    const double e = 2.7182818285;
 
     double exp1 = (-2.0 * PI * fc1 / fs);
     double exp2 = (-2.0 * PI * fc2 / fs);

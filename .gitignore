@@ -1,3 +1,4 @@
 tests/cms.txt
 roms/*.txt
 roms/*.nes
+cartridge/*.nes

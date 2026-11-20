@@ -79,7 +79,9 @@ void APU::write(uint16_t addr, uint8_t value)
         IRQFire = (value & 0x40) != 0;
 
         if (IRQFire)
+        {
             frameIRQ = false;
+        }
 
         FCResetPending = true;
         FCResetDelay = (cpuCycles % 2 == 0) ? 3 : 4;

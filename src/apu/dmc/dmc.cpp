@@ -2,6 +2,12 @@
 #include "dmc.hpp"
 #include "../../bus/bus.hpp"
 
+static constexpr uint16_t rates[16] = {
+    428, 380, 340, 320,
+    286, 254, 226, 214,
+    190, 160, 142, 128,
+    106, 85, 72, 54};
+
 void DMCChannel::connectBus(Bus *bus)
 {
     this->bus = bus;
@@ -15,6 +21,7 @@ void DMCChannel::write(uint16_t addr, uint8_t value)
         irqEnabled = value & 0x80;
         loop = value & 0x40;
         rateIndex = value & 0x0F;
+        timerPeriod = rates[rateIndex];
         break;
     case 0x4011:
         DACOutput = value & 0x7F;
@@ -76,22 +83,9 @@ void DMCChannel::clockOutputUnit()
 
 void DMCChannel::clockReader()
 {
-    if (sampleBufferEmpty)
+    if (sampleBufferEmpty && bytesRemaining > 0 && !dmaPending)
     {
-        if (bytesRemaining > 0)
-        {
-            sampleBuffer = bus->read(currentAddress);
-            sampleBufferEmpty = false;
-            if (currentAddress == 0xFFFF)
-                currentAddress = 0x8000;
-            else
-                currentAddress++;
-
-            bytesRemaining--;
-
-            if (bytesRemaining == 0)
-                finishSample();
-        }
+        requestDMA();
     }
 }
 

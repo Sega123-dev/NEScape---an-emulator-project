@@ -76,21 +76,6 @@ void NROM::cpuWrite(uint16_t addr, uint8_t data)
         prgRam[addr - 0x6000] = data;
     lastCpuValue = data;
 }
-// TEMP FIX
-/* uint16_t NROM::mirror(uint16_t addr)
-{
-    addr = addr & 0x0FFF;
-    if (mirroring == VERTICAL)
-    {
-        return addr % 0x800;
-    }
-    else if (mirroring == HORIZONTAL)
-    {
-        return (addr % 0x400) + (addr / 0x800) * 0x400;
-    }
-    return 0;
-}
-*/
 Mirror NROM::getMirror()
 {
     if (mirroring == HORIZONTAL)
