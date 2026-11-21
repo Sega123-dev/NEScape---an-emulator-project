@@ -4,6 +4,7 @@
 #include "../UxROM/uxrom.hpp"
 #include "../MMC1/mmc1.hpp"
 #include "../MMC3/mmc3.hpp"
+#include "../AxROM/axrom.hpp"
 
 #include "../../bus/bus.hpp"
 #include "../../ppu/ricoh2c02ntsc.hpp"
@@ -168,6 +169,10 @@ Mapper *chooseMapper()
     case 4:
         std::cout << "MMC3 chosen" << std::endl;
         return new MMC3(PRG_ROM, CHR_ROM, verticalMirroring);
+
+    case 7:
+        std::cout << "AXROM chosen" << std::endl;
+        return new AXROM(PRG_ROM, CHR_ROM);
 
     default:
         std::cerr << "NEScape does not support mapper " << mapperID << '\n';

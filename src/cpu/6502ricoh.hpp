@@ -48,6 +48,8 @@ public:
     bool NMI, IRQ;
     const double CPU_CLOCK_SPEED = 1.7897725 * 1000000;
 
+    void (CPU::*pending)() = nullptr;
+
     bool dmcDMARequested = false;
     bool dmcDMAActive = false;
     uint16_t dmcDMAAddress = 0;

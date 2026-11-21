@@ -2224,11 +2224,18 @@ void CPU::clock()
             }
 
             cycles = instr.cycles;
-            (this->*instr.execute)();
+            pending = instr.execute;
         }
     }
 
     cycles--;
+
+    if (cycles == 0 && pending)
+    {
+        auto f = pending;
+        pending = nullptr;
+        (this->*f)();
+    }
 }
 void CPU::connectBus(Bus *b)
 {

@@ -44,6 +44,15 @@ PPU::PPU()
         spritePatternHigh[i] = 0;
         spriteRowBuffer[i] = 0;
     }
+
+    vblankFlag = sprite0Hit = spriteOverflow = prevVblank = nmiOutput = false;
+    frameComplete = isOddFrame = spriteZeroPossible = spriteZeroRendering = false;
+    showBackground = showSprites = showLeftBackground = showLeftSprites = false;
+    spriteCount = 0;
+    vramIncrement = 1;
+    ppuDataBuffer = ppuOpenBus = 0;
+    bgShiftLow = bgShiftHigh = attrShiftLow = attrShiftHigh = 0;
+    nextTileID = nextTileLow = nextTileHigh = nextTileAttr = 0;
 }
 void PPU::initMirror()
 {
