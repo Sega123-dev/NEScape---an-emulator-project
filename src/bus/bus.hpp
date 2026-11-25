@@ -9,6 +9,8 @@
 #include "../mappers/NROM/nrom.hpp"
 #include "../mappers/UxROM/uxrom.hpp"
 
+#include "../controller/controller.hpp"
+
 #include <cstdint>
 
 class CPU;
@@ -19,6 +21,8 @@ class MMC1;
 class NROM;
 class UXROM;
 class APU;
+
+class Controller;
 
 class Bus
 {
@@ -35,6 +39,8 @@ public:
     uint8_t ram[2048];
 
     uint8_t openBus = 0x00;
+
+    Controller controller1;
 };
 
 extern Bus bus;

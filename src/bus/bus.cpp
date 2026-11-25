@@ -56,6 +56,8 @@ void Bus::write(uint16_t addr, uint8_t data)
         {
             bus.apu->write(addr, data);
         }
+        else if (addr == 0x4016)
+            bus.controller1.write(data);
 
         return;
     }
@@ -99,7 +101,7 @@ uint8_t Bus::read(uint16_t addr)
         data = bus.apu->read(addr);
 
     else if (addr == 0x4016)
-        data = 0x40;
+        data = 0x40 | bus.controller1.read();
 
     else if (addr == 0x4017)
         data = 0x40 | 0x08; // Zapper temp fix
