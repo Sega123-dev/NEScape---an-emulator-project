@@ -24,7 +24,7 @@ uint8_t AXROM::cpuRead(uint16_t addr)
     if (addr >= 0x8000)
         return prg[currentBank * 0x8000 + (addr & 0x7FFF)];
 
-    return lastCpuValue;
+    return 0;
 }
 
 void AXROM::cpuWrite(uint16_t addr, uint8_t data)
@@ -43,7 +43,7 @@ uint8_t AXROM::ppuRead(uint16_t addr)
         return chr[addr & 0x1FFF];
     }
 
-    return lastPpuValue;
+    return 0;
 }
 
 void AXROM::ppuWrite(uint16_t addr, uint8_t data)

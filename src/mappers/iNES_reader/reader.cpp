@@ -5,6 +5,7 @@
 #include "../MMC1/mmc1.hpp"
 #include "../MMC3/mmc3.hpp"
 #include "../AxROM/axrom.hpp"
+#include "../Color_Dreams/color_dreams.hpp"
 
 #include "../../bus/bus.hpp"
 #include "../../ppu/ricoh2c02ntsc.hpp"
@@ -143,7 +144,7 @@ Mapper *dumpROM(const char *filename)
     }
     std::cout << "PRG blocks: " << (int)header[4] << "\n";
     std::cout << "CHR blocks: " << (int)header[5] << "\n";
-    std::cout << "Mapper: " << mapperID << "\n";
+    std::cout << "Mapper: " << (int)mapperID << "\n";
 
     return mapper;
 }
@@ -173,7 +174,9 @@ Mapper *chooseMapper()
     case 7:
         std::cout << "AXROM chosen" << std::endl;
         return new AXROM(PRG_ROM, CHR_ROM);
-
+    case 11:
+        std::cout << "Color Dreams chosen" << std::endl;
+        return new Color_Dreams(PRG_ROM, CHR_ROM);
     default:
         std::cerr << "NEScape does not support mapper " << mapperID << '\n';
         return nullptr;
