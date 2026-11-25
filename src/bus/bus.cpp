@@ -57,7 +57,10 @@ void Bus::write(uint16_t addr, uint8_t data)
             bus.apu->write(addr, data);
         }
         else if (addr == 0x4016)
+        {
             bus.controller1.write(data);
+            bus.controller2.write(data);
+        }
 
         return;
     }
@@ -104,7 +107,7 @@ uint8_t Bus::read(uint16_t addr)
         data = 0x40 | bus.controller1.read();
 
     else if (addr == 0x4017)
-        data = 0x40 | 0x08; // Zapper temp fix
+        data = 0x40 | bus.controller2.read();
     else if (addr >= 0x4000 && addr <= 0x401F)
         data = openBus;
     else if (addr >= 0x4020 && addr <= 0xFFFF)

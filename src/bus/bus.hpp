@@ -41,6 +41,7 @@ public:
     uint8_t openBus = 0x00;
 
     Controller controller1;
+    Controller controller2;
 };
 
 extern Bus bus;

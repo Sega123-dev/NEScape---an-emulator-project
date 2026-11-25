@@ -7,17 +7,32 @@
 #include <SDL2/SDL.h>
 #include <filesystem>
 #include "rom_loader/findROM.hpp"
-
+#include "controller/config_manager.hpp"
+#include "controller/input_manager.hpp"
 int main(int argc, char *argv[])
 {
     Bus nes;
     CPU cpu;
     PPU ppu;
     APU apu;
+    ConfigManager configManager;
     std::filesystem::path romPath = findRom();
     std::string path = romPath.string();
     if (romPath.empty())
         return -1;
+
+    if (!configManager.loadConfig("src/config.ini"))
+    {
+        std::cerr << "Failed to load config!\n";
+        return 1;
+    }
+    Controller controller1;
+    Controller controller2;
+
+    InputManager inputManager(
+        &controller1,
+        &controller2,
+        &configManager);
 
     Mapper *mapper = dumpROM(path.c_str());
     if (!mapper)
@@ -59,6 +74,8 @@ int main(int argc, char *argv[])
 
         while (SDL_PollEvent(&event))
         {
+            inputManager.handleEvent(event);
+
             if (event.type == SDL_QUIT)
             {
                 bus.apu->shutdownAudio();
