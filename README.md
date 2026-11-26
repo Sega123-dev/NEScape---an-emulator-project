@@ -59,7 +59,7 @@ I am happy to announce that this emulator is done at it's core but still it is n
 
 After the implementation of needed features and correction of the emulator to match the hardware closer,for future versions I will implement a series of compentent features that could push this software into a territory of serious products:
 - Website where people interested in this type of software can browse the supported database,hardware documentation and be able to properly download this product.
--I will write a proper documentation which will cover this specific emulator and explain it how it works at it's core
+- I will write a proper documentation which will cover this specific emulator and explain it how it works at it's core
 - Push the commercial game support to at least 95%
 - Invest serious time into developing a proper ecosystem of development tools and monitoring features regarding the work of this emulator
 
