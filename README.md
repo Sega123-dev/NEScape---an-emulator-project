@@ -59,7 +59,24 @@ In the mid-July 2026,NEScape finally came to life and showed some graphics.It wa
 
 # Current state of development
 These are the latest screenshots of emulator running famous NES games.
+<p align = "center">
+ 
+<img src="img/contra.png" width="600">
 
+<img src="img/duck%20hunt.png" width="600">
+
+<img src="img/kirby.png" width="600">
+
+<img src="img/LoZ.png" width="600">
+
+<img src="img/silent%20assault.png" width="600">
+
+<img src="img/skate%20or%20die.png" width="600">
+
+<img src="img/super%20mario.png" width="600">
+
+<img src="img/wizards%20and%20warriors.png" width="600">
+</p>
 ## Goals for the future
 
 I am happy to announce that this emulator is done at it's core but still it is not qualified yet for a full release.For a full 1.0.0 version,i need to implement:
