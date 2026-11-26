@@ -65,6 +65,15 @@ After the implementation of needed features and correction of the emulator to ma
 - Push the commercial game support to at least 95%
 - Invest serious time into developing a proper ecosystem of development tools and monitoring features regarding the work of this emulator
 
+# Used technologies
+This emulator is developed or it will be developed with these specific technologies:
+[![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/csharp/)
+[![WPF](https://img.shields.io/badge/WPF-512BD4?style=for-the-badge&logo=windows&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/)
+[![CMake](https://img.shields.io/badge/CMake-064F8C?style=for-the-badge&logo=cmake&logoColor=white)](https://cmake.org/)
+[![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)](https://isocpp.org/)
+[![inih](https://img.shields.io/badge/inih-555555?style=for-the-badge&logo=files&logoColor=white)](https://github.com/benhoyt/inih)
+[![SDL2](https://img.shields.io/badge/SDL2-1D8DB0?style=for-the-badge&logo=sdl&logoColor=white)](https://www.libsdl.org/)
+
 # ROM support
 Rough estimate is 83% of commercial games that will boot at least,but current estimate of the playable games is yet to be discovered.When the full release come,please check the database that will cover the entire support.
 
