@@ -1,5 +1,5 @@
 <p align = "center">
-  <img width="327" height="335" alt="logo" src="https://github.com/user-attachments/assets/e2ff05af-676c-409e-8cc4-5e3d0a1707a1" />
+ <img width="327" height="335" alt="logo bg removed" src="https://github.com/user-attachments/assets/8fbe55bd-79db-4357-82aa-8d9c23b151be" />
 </p>
 
 
