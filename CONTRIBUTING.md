@@ -37,7 +37,7 @@ If you encounter a bug, please open an issue and include:
 
 ### Feature Suggestions
 
-Have an idea that could improve NEScape? Feel free to open an issue describing your suggestion, why it would be useful and how you envision it working.
+I am open to suggestions regarding use of better technology,new features etc.Feel free to write me!
 
 ### Code Contributions
 
