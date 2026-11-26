@@ -10,7 +10,7 @@ Boot estimate: **83% of commercial and homebrew titles**
 For the first teesting,I am aiming to test NEScape with over 150 commercial games and over 50 homebrew ROMs and test releases.
 
 Current mappers supported: 0,1,2,3,4,7(experimental),11.
-**No support for mapper extension and different solder boards**
+**No support for mapper extension and different solder boards.**
 
 Emulator usually is going to be tested with EU/USA/World version of ROMs,but I might test with JP ROMs for specific franchises.
 
@@ -24,7 +24,7 @@ Support not related to mappers and memory:
 - Save states not supported
 - Dualshock and other controllers are not supported but they are in the scope
 
-**NOTE: ** This list will be updated regularly and could change over time depending on the changes of scope and long-term goals for this project.
+**NOTE:** This list will be updated regularly and could change over time depending on the changes of scope and long-term goals for this project.
 
 
 Updated: _November 26th 2026_
