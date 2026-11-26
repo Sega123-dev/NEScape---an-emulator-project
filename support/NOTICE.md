@@ -7,9 +7,12 @@ Emulator is currently at the development stage so support is pretty limited.
 
 Boot estimate: **83% of commercial and homebrew titles**
 
-For the first teesting,I am aiming to test NEScape with over 150 commercial games and over 50 homebrew ROMs and test releases.
+For the first testing,I am aiming to test NEScape with over 150 commercial games and over 50 homebrew ROMs and test releases.
+
+I will be doing it in batches that are linked to each mapper(probably will be 25 to 30 games per each mapper).
 
 Current mappers supported: 0,1,2,3,4,7(experimental),11.
+
 **No support for mapper extension and different solder boards.**
 
 Emulator usually is going to be tested with EU/USA/World version of ROMs,but I might test with JP ROMs for specific franchises.
