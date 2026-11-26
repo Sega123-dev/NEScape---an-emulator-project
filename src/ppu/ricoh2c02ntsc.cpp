@@ -6,6 +6,7 @@
 #include "../mappers/iNES_reader/reader.hpp"
 #include "../mappers/mapper.hpp"
 #include "../cpu/6502ricoh.hpp"
+#include <SDL2/SDL_image.h>
 #undef main // Important for MinGW/SDL2 on Windows
 
 // FILES NOT COMPILED,SDL WILL NOT WORK UNTIL YOU COMPILE!!!
@@ -773,7 +774,17 @@ void PPU::initWindow()
         256 * 4,
         240 * 4,
         0);
+    SDL_Surface *icon = IMG_Load("img/logo.png");
 
+    if (icon)
+    {
+        SDL_SetWindowIcon(window, icon);
+        SDL_FreeSurface(icon);
+    }
+    else
+    {
+        SDL_Log("Icon loading failed: %s", IMG_GetError());
+    }
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     texture = SDL_CreateTexture(
