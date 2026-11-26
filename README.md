@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Mappers-7-00bfff?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Game_Compatibility-83%?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Game_Compatibility-83%-?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Tested_ROMs-57-239120?style=for-the-badge" />
 </p>
 
