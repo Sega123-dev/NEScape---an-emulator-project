@@ -42,10 +42,10 @@ The best comparison to this emulator could be the earliest versions of FCEUX or 
 |------------------|---------------------------------|---------------------------------|
 | CPU               | Ricoh 2A03, 151 official opcodes (D flag ignored) | 151 official opcodes implemented |
 | PPU (Graphics)    | 100% accurate, full NTSC/PAL quirks | ~75% accuracy goal, will handle most graphics but skips minor timing quirks |
-| APU (Audio)       | 5 channels (Pulse 1+2, Triangle, Noise, DMC) | All 5 channels,presented by SDL |
+| APU (Audio)       | 5 channels (Pulse 1+2, Triangle, Noise, DMC) + Audio Filter | All 5 channels,presented by SDL and high and low pass filter |
 | RAM               | 2 KB internal                            | 2 KB virtual                          |
 | VRAM              | 4 KB internal                           | 4 KB virtual                           |
-| Cartridge Slot    | Supports 300+ mappers           | Supports main mappers, limited subset(NROM,CNROM,UXROM,MMC1,MMC3) |
+| Cartridge Slot    | Supports 300+ mappers           | Supports main mappers, limited subset(NROM,CNROM,UXROM,MMC1,MMC3),AxROM,Color Dreams |
 | Controllers       | 2 standard controllers + optional accessories (Zapper, etc.) | Controls will be mapped to keyboard and modern controller
 
 # Early development
@@ -78,6 +78,7 @@ After the implementation of needed features and correction of the emulator to ma
 - I will write a proper documentation which will cover this specific emulator and explain it how it works at it's core
 - Push the commercial game support to at least 95%
 - Invest serious time into developing a proper ecosystem of development tools and monitoring features regarding the work of this emulator
+- Support for controllers like Dualshock and others.
 
 ## Used technologies
 This emulator is developed or it will be developed with these specific technologies:
