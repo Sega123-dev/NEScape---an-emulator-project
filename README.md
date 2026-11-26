@@ -2,8 +2,10 @@
 
 # What is an emulator?
 
-Emulator is a software that mimics the real hardware.This repository is example of an emulator based on a legacy 8-bit console manufactured in 1983 called **Nintendo Entertainment System(NES)**,also known as **Famicom**, in which development,various companies worked,mainly Nintendo.Like other emulators,this emulator won't be 100% accurate as a real console.In theory, the goal accuracy of this emulator is around 65% if we do not include the pirated and homebrew aspects of this console.With this emulator in theory,you should be able to play around 70% of commercial titles when I release the full emulator demo.
+Emulator is a software that mimics the real hardware.This repository is example of an emulator based on a legacy 8-bit console manufactured in 1983 called **Nintendo Entertainment System(NES)**,also known as **Famicom**, in which development,various companies worked,mainly Nintendo.Like other emulators,this emulator won't be 100% accurate as a real console.In theory, the goal accuracy of this emulator is around *65% if we do not include the pirated and homebrew aspects of this console.With this emulator in theory,you should be able to play around *70% of commercial titles when I release the full emulator demo.
 The best comparison to this emulator could be the earliest versions of FCEUX or Nestopia emulators.
+
+**Estimate of the current compatiblity is 83% of the commercial titles which means it is well over the first compatiblity goal*
 
 # What are the components of the NES?
 
@@ -44,11 +46,42 @@ In the mid-July 2026,NEScape finally came to life and showed some graphics.It wa
 
 <img width="782" height="753" alt="image" src="https://github.com/user-attachments/assets/735fd7a1-4de0-42ba-86af-f75cb7bd8e6f" />
 
+# Current state of development
+These are the latest screenshots of emulator running famous NES games.
 
+# Goals for the future
 
+I am happy to announce that this emulator is done at it's core but still it is not qualified yet for a full release.For a full 1.0.0 version,i need to implement:
+- Accurate CPU timing and sprite zero hit corrections
+- Finish the configuration,as it is a bare file with controller functionality only
+- Optimize the audio,as it currently uses the expensive ring buffer,slowing emulation in some cases
+- Proper User Interface,which supports loading previous games without touching the bare .nes files
+- Save states,as currently save states or battery-backed saving is not yet supported
+- Proper database of all games that this emulator can run
+- Rewrite of architecture of specific parts to hit better accuracy of this legacy hardware
+- Corrections in terms of AxROM mapper issue 
+- Full support of Zapper,so we can further support Duck Hunt specifically
 
-# Support and versions
+After the implementation of needed features and correction of the emulator to match the hardware closer,for future versions I will implement a series of compentent features that could push this software into a territory of serious products:
+- Website where people interested in this type of software can browse the supported database,hardware documentation and be able to properly download this product.
+- I will write a proper documentation which will cover this specific emulator and explain it how it works at it's core
+- Push the commercial game support to at least 95%
+- Invest serious time into developing a proper ecosystem of development tools and monitoring features regarding the work of this emulator
 
-- *v0.1* - Pre-release 0.1.0,First MVP
+# Used technologies
+This emulator is developed or it will be developed with these specific technologies:
 
-Emulator currenlty can work only on **Windows** OS.
+[![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/csharp/)
+[![WPF](https://img.shields.io/badge/WPF-512BD4?style=for-the-badge&logo=windows&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/)
+[![CMake](https://img.shields.io/badge/CMake-064F8C?style=for-the-badge&logo=cmake&logoColor=white)](https://cmake.org/)
+[![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)](https://isocpp.org/)
+[![inih](https://img.shields.io/badge/inih-555555?style=for-the-badge&logo=files&logoColor=white)](https://github.com/benhoyt/inih)
+[![SDL2](https://img.shields.io/badge/SDL2-1D8DB0?style=for-the-badge&logo=sdl&logoColor=white)](https://www.libsdl.org/)
+
+*The emulator development is not limited to these technologies and the badges can be changed in the future*
+
+# ROM support
+Rough estimate is 83% of commercial games that will boot at least,but current estimate of the playable games is yet to be discovered.When the full release come,please check the database that will cover the entire support.
+
+# Operating system support
+**NEScape** currently is supported only on **Windows** and will probably stay on it for quite some time if I stay the only contributor.I am planning the support on **Linux** and **WebAssembly** but it is not one of the primary goals,especially not for a full release.
