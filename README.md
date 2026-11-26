@@ -134,5 +134,5 @@ I used various resources during the development,but these were the most used one
 
 [masswerk.at](https://masswerk.at/6502/6502_instruction_set.html) - website related to old hardware and emulators,their documentation of 6502 instruction set really helped me.
 
-[SimpleNES emulator](https://github.com/amhndu/SimpleNES/tree/master) - this repo really saved me when i wasn't sure of exact behaviour of the mappers,it is worth checking out this repository.Special thanks to his work!
+[SimpleNES emulator](https://github.com/amhndu/SimpleNES/tree/master) - this repo really saved me when i wasn't sure of exact behaviour of the mappers,it is worth checking out this repository.Special thanks to contributors and the repo owner!
 
