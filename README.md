@@ -124,3 +124,9 @@ Rough estimate is 83% of commercial games that will boot at least,but current es
 
 ## Operating system support
 **NEScape** currently is supported only on **Windows** and will probably stay on it for quite some time if I stay the only contributor.I am planning the support on **Linux** and **WebAssembly** but it is not one of the primary goals,especially not for a full release.
+
+## Resources
+I used various resources during the development,but these were the most used ones:
+
+[!nesdev.org](https://www.nesdev.org/wiki/Nesdev_Wiki) - they have a great documentation and resources,helped me understand the NES hardware.
+
