@@ -78,6 +78,7 @@ After the implementation of needed features and correction of the emulator to ma
 - I will write a proper documentation which will cover this specific emulator and explain it how it works at it's core
 - Push the commercial game support to at least 95%
 - Invest serious time into developing a proper ecosystem of development tools and monitoring features regarding the work of this emulator
+- Support for controllers like Dualshock and others.
 
 ## Used technologies
 This emulator is developed or it will be developed with these specific technologies:
