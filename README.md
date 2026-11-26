@@ -128,5 +128,9 @@ Rough estimate is 83% of commercial games that will boot at least,but current es
 ## Resources
 I used various resources during the development,but these were the most used ones:
 
-[!nesdev.org](https://www.nesdev.org/wiki/Nesdev_Wiki) - they have a great documentation and resources,helped me understand the NES hardware.
+[nesdev.org](https://www.nesdev.org/wiki/Nesdev_Wiki) - they have a great documentation and resources,helped me understand the NES hardware.
+
+[masswerk.at](https://masswerk.at/6502/6502_instruction_set.html) - website related to old hardware and emulators,their documentation of 6502 instruction set really helped me.
+
+[SimpleNES emulator](https://github.com/amhndu/SimpleNES/tree/master) - this repo really saved me when i wasn't sure of exact behaviour of the mappers,it is worth checking out this repository.Special thanks to his work!
 
