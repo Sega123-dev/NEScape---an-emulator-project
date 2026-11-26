@@ -45,7 +45,7 @@ The best comparison to this emulator could be the earliest versions of FCEUX or 
 | APU (Audio)       | 5 channels (Pulse 1+2, Triangle, Noise, DMC) | All 5 channels,presented by SDL |
 | RAM               | 2 KB internal                            | 2 KB virtual                          |
 | VRAM              | 4 KB internal                           | 4 KB virtual                           |
-| Cartridge Slot    | Supports 300+ mappers           | Supports main mappers, limited subset(NROM,CNROM,UXROM,MMC1,MMC3) |
+| Cartridge Slot    | Supports 300+ mappers           | Supports main mappers, limited subset(NROM,CNROM,UXROM,MMC1,MMC3),AxROM,Color Dreams |
 | Controllers       | 2 standard controllers + optional accessories (Zapper, etc.) | Controls will be mapped to keyboard and modern controller
 
 # Early development
