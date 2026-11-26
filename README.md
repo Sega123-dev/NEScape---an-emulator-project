@@ -1,3 +1,14 @@
+<p align = "center">
+ <img width="327" height="335" alt="logo bg removed" src="https://github.com/user-attachments/assets/8fbe55bd-79db-4357-82aa-8d9c23b151be" />
+</p>
+
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Mappers-7-00bfff?style=for-the-badge" />
+ <img src="https://img.shields.io/badge/Game_Compatibility-83%25-ff8800?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Tested_ROMs-57-239120?style=for-the-badge" />
+</p>
+
 # NEScape
 
 # What is an emulator?
@@ -49,7 +60,7 @@ In the mid-July 2026,NEScape finally came to life and showed some graphics.It wa
 # Current state of development
 These are the latest screenshots of emulator running famous NES games.
 
-# Goals for the future
+## Goals for the future
 
 I am happy to announce that this emulator is done at it's core but still it is not qualified yet for a full release.For a full 1.0.0 version,i need to implement:
 - Accurate CPU timing and sprite zero hit corrections
@@ -68,7 +79,7 @@ After the implementation of needed features and correction of the emulator to ma
 - Push the commercial game support to at least 95%
 - Invest serious time into developing a proper ecosystem of development tools and monitoring features regarding the work of this emulator
 
-# Used technologies
+## Used technologies
 This emulator is developed or it will be developed with these specific technologies:
 
 [![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/csharp/)
@@ -80,8 +91,8 @@ This emulator is developed or it will be developed with these specific technolog
 
 *The emulator development is not limited to these technologies and the badges can be changed in the future*
 
-# ROM support
+## ROM support
 Rough estimate is 83% of commercial games that will boot at least,but current estimate of the playable games is yet to be discovered.When the full release come,please check the database that will cover the entire support.
 
-# Operating system support
+## Operating system support
 **NEScape** currently is supported only on **Windows** and will probably stay on it for quite some time if I stay the only contributor.I am planning the support on **Linux** and **WebAssembly** but it is not one of the primary goals,especially not for a full release.
