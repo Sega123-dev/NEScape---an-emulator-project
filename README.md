@@ -69,4 +69,4 @@ After the implementation of needed features and correction of the emulator to ma
 Rough estimate is 83% of commercial games that will boot at least,but current estimate of the playable games is yet to be discovered.When the full release come,please check the database that will cover the entire support.
 
 # Operating system support
-**NEScape** currently is supported only on **Windows** and will probably stay on it for quite some time if I stay the only contributor.I am planning the support to **Linux** and **WebAssembly** but it is not one of the primary goals,especially not for a full release.
+**NEScape** currently is supported only on **Windows** and will probably stay on it for quite some time if I stay the only contributor.I am planning the support on **Linux** and **WebAssembly** but it is not one of the primary goals,especially not for a full release.
