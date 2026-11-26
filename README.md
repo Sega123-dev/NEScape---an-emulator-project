@@ -86,6 +86,7 @@ These are the latest screenshots of emulator running famous NES games.
 <img src="img/wizards%20and%20warriors.png" width="600">
 
 </p>
+
 ## Goals for the future
 
 I am happy to announce that this emulator is done at it's core but still it is not qualified yet for a full release.For a full 1.0.0 version,i need to implement:
