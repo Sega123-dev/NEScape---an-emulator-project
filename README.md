@@ -87,6 +87,8 @@ These are the latest screenshots of emulator running famous NES games.
 
 </p>
 
+**NOTE:** This is not a production-ready software and it is still in early access phase.Expect bugs,inaccurate behaviour and compatiblity issues. This software is made purely for educational purpose so I can improve my programming skills.
+
 ## Goals for the future
 
 I am happy to announce that this emulator is done at it's core but still it is not qualified yet for a full release.For a full 1.0.0 version,i need to implement:
