@@ -44,11 +44,26 @@ In the mid-July 2026,NEScape finally came to life and showed some graphics.It wa
 
 <img width="782" height="753" alt="image" src="https://github.com/user-attachments/assets/735fd7a1-4de0-42ba-86af-f75cb7bd8e6f" />
 
+# Goals for the future
 
+I am happy to announce that this emulator is done at it's core but still it is not qualified yet for a full release.For a full 1.0.0 version,i need to implement:
+- Accurate CPU timing and sprite zero hit corrections
+- Finish the configuration,as it is a bare file with controller functionality only
+- Optimize the audio,as it currently uses the expensive ring buffer,slowing emulation in some cases
+- Proper User Interface,which supports loading previous games without touching the bare .nes files
+- Save states,as currently save states or battery-backed saving is not yet supported
+- Proper database of all games that this emulator can run
+- Rewrite of architecture of specific parts to hit better accuracy of this legacy hardware
+- Corrections in terms of AxROM mapper issue 
+- Full support of Zapper,so we can further support Duck Hunt specifically
 
+After the implementation of needed features and correction of the emulator to match the hardware closer,for future versions I will implement a series of compentent features that could push this software into a territory of serious products:
+- Website where people interested in this type of software can browse the supported database,hardware documentation and be able to properly download this product.
+-I will write a proper documentation which will cover this specific emulator and explain it how it works at it's core
+- Push the commercial game support to at least 95%
+- Invest serious time into developing a proper ecosystem of development tools and monitoring features regarding the work of this emulator
 
-# Support and versions
-
-- *v0.1* - Pre-release 0.1.0,First MVP
+# ROM support
+Rough estimate is 83% of commercial games that will boot at least,but current estimate of the playable games is yet to be discovered.When the full release come,please check the database that will cover the entire support.
 
 Emulator currenlty can work only on **Windows** OS.
