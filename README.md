@@ -78,6 +78,7 @@ This emulator is developed or it will be developed with these specific technolog
 [![inih](https://img.shields.io/badge/inih-555555?style=for-the-badge&logo=files&logoColor=white)](https://github.com/benhoyt/inih)
 [![SDL2](https://img.shields.io/badge/SDL2-1D8DB0?style=for-the-badge&logo=sdl&logoColor=white)](https://www.libsdl.org/)
 
+*The emulator development is not limited to these technologies and the badges can be changed in the future*
 
 # ROM support
 Rough estimate is 83% of commercial games that will boot at least,but current estimate of the playable games is yet to be discovered.When the full release come,please check the database that will cover the entire support.
