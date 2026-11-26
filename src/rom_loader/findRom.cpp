@@ -28,7 +28,8 @@ fs::path findRom()
 
     if (romCount == 0)
     {
-        return "default/empty_cartridge.nes";
+        romName = "Cartridge Empty";
+        return "default/Cartridge_Empty.nes";
     }
 
     if (romCount > 1)
@@ -36,6 +37,6 @@ fs::path findRom()
         std::cout << "Only one ROM in the cartridge is allowed!" << std::endl;
         return {};
     }
-
+    romName = romPath.stem().string();
     return romPath;
 }

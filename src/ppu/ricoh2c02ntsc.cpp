@@ -7,6 +7,7 @@
 #include "../mappers/mapper.hpp"
 #include "../cpu/6502ricoh.hpp"
 #include <SDL2/SDL_image.h>
+#include "../rom_loader/findRom.hpp"
 #undef main // Important for MinGW/SDL2 on Windows
 
 // FILES NOT COMPILED,SDL WILL NOT WORK UNTIL YOU COMPILE!!!
@@ -768,7 +769,7 @@ void PPU::initWindow()
     SDL_Init(SDL_INIT_VIDEO);
 
     window = SDL_CreateWindow(
-        "NEScape",
+        ("NEScape - " + romName).c_str(),
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         256 * 4,
