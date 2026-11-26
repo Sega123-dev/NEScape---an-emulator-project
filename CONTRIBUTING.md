@@ -3,7 +3,7 @@ Thank you for contributing to NEScape!
 
 Whether you're fixing a bug, improving compatibility, optimizing performance or suggesting a new feature, every contribution is appreciated.
 
-# Getting Started
+## Getting Started
 
 Before contributing, make sure you have:
 
@@ -21,11 +21,11 @@ git clone https://github.com/Sega123-dev/NEScape---an-emulator-project.git
 
 Please refer to the main README for build instructions and additional dependencies.
 
-# How Can You Contribute?
+## How Can You Contribute?
 
 There are several ways to contribute to NEScape.
 
-# Bug Reports
+### Bug Reports
 
 If you encounter a bug, please open an issue and include:
 
@@ -35,11 +35,11 @@ If you encounter a bug, please open an issue and include:
 - Relevant logs or screenshots.
 - The ROM name and mapper, if applicable.
 
-# Feature Suggestions
+### Feature Suggestions
 
 Have an idea that could improve NEScape? Feel free to open an issue describing your suggestion, why it would be useful and how you envision it working.
 
-# Code Contributions
+### Code Contributions
 
 Code contributions are welcome, including:
 
@@ -50,7 +50,7 @@ Code contributions are welcome, including:
 - UI and usability enhancements.
 - Bug fixes and code refactoring.
 
-# Pull Request Guidelines
+### Pull Request Guidelines
 
 Before submitting a pull request:
 
@@ -62,7 +62,7 @@ Before submitting a pull request:
 
 Please avoid submitting unrelated changes in a single pull request.
 
-# Coding Guidelines
+## Coding Guidelines
 
 To maintain consistency throughout the project:
 
@@ -74,7 +74,7 @@ To maintain consistency throughout the project:
 
 For emulator-related changes, please pay particular attention to timing accuracy, memory mapping and hardware behavior.
 
-# Testing
+## Testing
 
 Changes affecting emulation accuracy should be tested whenever possible.
 
