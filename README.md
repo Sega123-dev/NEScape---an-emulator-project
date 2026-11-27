@@ -60,6 +60,35 @@ In the mid-July 2026,NEScape finally came to life and showed some graphics.It wa
 # Current state of development
 These are the latest screenshots of emulator running famous NES games.
 
+<p align = "center">
+ 
+<img src="img/contra.png" width="600">
+
+
+<img src="img/duck%20hunt.png" width="600">
+
+
+<img src="img/kirby.png" width="600">
+
+
+<img src="img/LoZ.png" width="600">
+
+
+<img src="img/silent%20assault.png" width="600">
+
+
+<img src="img/skate%20or%20die.png" width="600">
+
+
+<img src="img/super%20mario.png" width="600">
+
+
+<img src="img/wizards%20and%20warriors.png" width="600">
+
+</p>
+
+**NOTE:** This is not a production-ready software and it is still in early access phase.Expect bugs,inaccurate behaviour and compatiblity issues. This software is made purely for educational purpose so I can improve my programming skills.
+
 ## Goals for the future
 
 I am happy to announce that this emulator is done at it's core but still it is not qualified yet for a full release.For a full 1.0.0 version,i need to implement:
@@ -97,3 +126,13 @@ Rough estimate is 83% of commercial games that will boot at least,but current es
 
 ## Operating system support
 **NEScape** currently is supported only on **Windows** and will probably stay on it for quite some time if I stay the only contributor.I am planning the support on **Linux** and **WebAssembly** but it is not one of the primary goals,especially not for a full release.
+
+## Resources
+I used various resources during the development,but these were the most used ones:
+
+[nesdev.org](https://www.nesdev.org/wiki/Nesdev_Wiki) - they have a great documentation and resources,helped me understand the NES hardware.
+
+[masswerk.at](https://masswerk.at/6502/6502_instruction_set.html) - website related to old hardware and emulators,their documentation of 6502 instruction set really helped me.
+
+[SimpleNES emulator](https://github.com/amhndu/SimpleNES/tree/master) - this repo really saved me when i wasn't sure of exact behaviour of the mappers,it is worth checking out this repository.Special thanks to contributors and the repo owner!
+

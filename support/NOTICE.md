@@ -26,8 +26,8 @@ Support not related to mappers and memory:
 - Battery-backed saving not yet supported
 - Save states not supported
 - Dualshock and other controllers are not supported but they are in the scope
+- Audio is supported but it is not perfectly accurate,sometimes it can be pitched
 
 **NOTE:** This list will be updated regularly and could change over time depending on the changes of scope and long-term goals for this project.
-
 
 Updated: _November 26th 2026_
