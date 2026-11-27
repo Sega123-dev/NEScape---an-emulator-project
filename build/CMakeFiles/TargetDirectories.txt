@@ -1,0 +1,3 @@
+C:/Users/User PS/OneDrive/Dokumenti/Coding/Github projects/NES-Emulator/build/CMakeFiles/nescape.dir
+C:/Users/User PS/OneDrive/Dokumenti/Coding/Github projects/NES-Emulator/build/CMakeFiles/edit_cache.dir
+C:/Users/User PS/OneDrive/Dokumenti/Coding/Github projects/NES-Emulator/build/CMakeFiles/rebuild_cache.dir
