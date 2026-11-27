@@ -25,7 +25,19 @@ These are the games that are tested and proven to work properly(but emulator is 
   - Mario Bros
   - Kung Fu
   - Excitebike
-  
+  - Clu Clu Land
+  - Golf
+  - Tennis
+  - Pinball
+  - Popeye
+  - 10-Yard-Fight
+  - Donkey Kong Jr
+  - Donkey Kong 3
+  - Pac-Man
+  - Slalom
+  - Space Invaders
+  - Mahjong
+    
   ### UxROM/UNROM
   
   - Castlevania 
@@ -34,7 +46,7 @@ These are the games that are tested and proven to work properly(but emulator is 
   - Ducktales
   - Ducktales 2
   - 1943: The Battle of Midway
-  - Clu Clu Land
+  - Cadillac
   
   ### CNROM
 
@@ -52,19 +64,23 @@ These are the games that are tested and proven to work properly(but emulator is 
   - Tetris 2
   - Metroid
   
+  
   ### MMC3
 
   - Super Mario Bros 3
   - Kirby's Adventure
-  - Castlevania 3: Dracula's Curse
-
+  - Contra Force
+    
   ### AxROM
+  
   - Battletoads
   - Wizards & Warriors
   - Captian Skyhawk
   
   ### Color Dreams
-
+  
+  - Silent Assault
+ 
 ## List - Homebrew games
 
 ### NROM
